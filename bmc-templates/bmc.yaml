@@ -1,0 +1,14 @@
+apiVersion: infra.io.odimra/v1
+kind: Bmc
+metadata:
+  name: <bmc_object_name>
+  namespace: bmc-op
+spec:
+  bmc: 
+    address: <bmc_ip>
+    connectionMethodVariant: <plugin_variant>
+    powerState: ""  #by default it will be null, we need to update k8 object for reset action
+    resetType: ""   #by default it will be null, we need to update k8 object for reset action
+  credentials:
+    username: 
+    password:

@@ -1,0 +1,15 @@
+apiVersion: infra.io.odimra/v1
+kind: Eventsubscription
+metadata:
+  name:
+  namespace: bmc-op
+spec:
+  name:
+  destination:
+  eventTypes:
+  messageIds:
+  resourceTypes:
+  context:
+  eventFormatType:
+  subordinateResources:
+  originResources:

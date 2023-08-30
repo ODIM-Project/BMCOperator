@@ -1,0 +1,10 @@
+apiVersion: infra.io.odimra/v1
+kind: BootOrderSetting
+metadata:
+  name: # name same as bmc
+  namespace: bmc-op   #NameSpace  same as bmc
+spec:
+    bmcName:
+    systemID:
+    serialNumber:
+    boot:  #example: bootOrder: ["Cd","Usb","Hdd","Pxe"]

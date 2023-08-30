@@ -1,0 +1,27 @@
+# permissions for end users to view eventsmessageregistries.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: eventsmessageregistry-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: bmc-operator
+    app.kubernetes.io/part-of: bmc-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: eventsmessageregistry-viewer-role
+rules:
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsmessageregistries
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsmessageregistries/status
+  verbs:
+  - get

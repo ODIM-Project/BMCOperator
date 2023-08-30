@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bmc-operator-config
+  namespace: bmc-op
+  labels:
+    type: config
+data:
+  config.yaml: |
+    reconciliation : Accommodate #Accommodate/Revert
+    eventSubReconciliation: Accommodate #Accommodate/Revert
+    reconcileInterval: "24" #Time in `Hours` (in string)
+    secretName: bmc-secret
+    metricsBindPort: "8080"  # cannot change at runtime (in string)
+    healthProbeBindPort: "8081" # cannot change at runtime (in string)
+    eventClientPort: "45000" # cannot change at runtime (in string)
+    logLevel: warn
+    logFormat: syslog
+    kubeConfigPath: # provide kube config file path as value when running with 'make install run' command
+    namespace: bmc-op
+    operatorEventSubscriptionEventTypes:
+    - ResourceAdded
+    - ResourceRemoved
+    - Alert
+    operatorEventSubsciptionMessageIds:
+    - ResourceEvent.1.2.0.ResourceRemoved
+    - ResourceEvent.1.2.0.ResourceAdded
+    - iLOEvents.3.2.ServerPostDiscoveryComplete
+    - iLOEvents.3.2.ServerPostComplete
+    operatorEventSubsciptionResourceTypes:
+    - ComputerSystems

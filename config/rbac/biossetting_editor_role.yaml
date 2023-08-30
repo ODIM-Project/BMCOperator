@@ -1,0 +1,24 @@
+# permissions for end users to edit biossettings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: biossetting-editor-role
+rules:
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biossettings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biossettings/status
+  verbs:
+  - get

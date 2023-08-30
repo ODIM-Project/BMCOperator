@@ -1,0 +1,24 @@
+# permissions for end users to edit biosschemaregistries.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: biosschemaregistry-editor-role
+rules:
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biosschemaregistries
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biosschemaregistries/status
+  verbs:
+  - get

@@ -1,0 +1,20 @@
+# permissions for end users to view odims.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: odim-viewer-role
+rules:
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - odims
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - odims/status
+  verbs:
+  - get

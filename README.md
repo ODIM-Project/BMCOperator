@@ -200,6 +200,7 @@ This document is shipped with the following comprehensive set of Resource Aggreg
 
 3. Navigate to `/home/{user}/BMCOperator/bin` and change the permission of binaries to make it executable:
 
+
    ```
    chmod 775 *
    ```
@@ -2976,12 +2977,12 @@ In such instances, force delete the BMC by performing the following tasks:
    [signal SIGSEGV: segmentation violation code=0x1 addr=0x20 pc=0x1336844]
    
    goroutine 445 [running]:
-   github.com/ODIM-Project/bmc-operator/controllers/boot.(*bootUtils).UpdateBootDetails(0xc0009cfc30, {0x1b11c98, 0xc00096b6b0}, {0xc0000437d0, 0x26}, {0x0, 0x0}, 0xc0004e83c0, 0x0)
+   github.com/ODIM-Project/BMCOperator/controllers/boot.(*bootUtils).UpdateBootDetails(0xc0009cfc30, {0x1b11c98, 0xc00096b6b0}, {0xc0000437d0, 0x26}, {0x0, 0x0}, 0xc0004e83c0, 0x0)
            /bmc-operator/controllers/boot/bootordersettings_controller.go:188 +0x5a4
-   github.com/ODIM-Project/bmc-operator/controllers/boot.(*bootUtils).updateBootSettings(0xc0009cfc30)
-           /bmc-operator/controllers/boot/bootordersettings_controller.go:121 +0x245
-   github.com/ODIM-Project/bmc-operator/controllers/boot.(*BootOrderSettingsReconciler).Reconcile(0xc0005fa2a0, {0x1b11c98, 0xc00096b590}, {{{0xc00047b690?, 0x17903c0?}, {0xc00047b680?, 0x30?}}})
-           /bmc-operator/controllers/boot/bootordersettings_controller.go:87 +0x525
+   github.com/ODIM-Project/BMCOperator/controllers/boot.(*bootUtils).updateBootSettings(0xc0009cfc30)
+           /BMCOperator/controllers/boot/bootordersettings_controller.go:121 +0x245
+   github.com/ODIM-Project/BMCOperator/controllers/boot.(*BootOrderSettingsReconciler).Reconcile(0xc0005fa2a0, {0x1b11c98, 0xc00096b590}, {{{0xc00047b690?, 0x17903c0?}, {0xc00047b680?, 0x30?}}})
+           /BMCOperator/controllers/boot/bootordersettings_controller.go:87 +0x525
    sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Reconcile(0xc0001b5130, {0x1b11c98, 0xc00096b560}, {{{0xc00047b690?, 0x17903c0?}, {0xc00047b680?, 0x4045d4?}}})
            /go/pkg/mod/sigs.k8s.io/controller-runtime@v0.11.0/pkg/internal/controller/controller.go:114 +0x28b
    sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler(0xc0001b5130, {0x1b11bf0, 0xc0004fc100}, {0x16c62e0?, 0xc000138e20?})
