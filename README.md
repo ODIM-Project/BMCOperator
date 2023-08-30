@@ -193,12 +193,12 @@ This document is shipped with the following comprehensive set of Resource Aggreg
 1. Clone the project by running the following command:
 
    ```
-   git clone https://github.hpe.com/Bruce/bmc-operator.git
+   git clone https://github.com/ODIM-Project/BMCOperator.git
    ```
 
 2. Switch to the project branch.
 
-3. Navigate to `/home/{user}/bmc-operator/bin` and change the permission of binaries to make it executable:
+3. Navigate to `/home/{user}/BMCOperator/bin` and change the permission of binaries to make it executable:
 
    ```
    chmod 775 *
@@ -210,7 +210,7 @@ This document is shipped with the following comprehensive set of Resource Aggreg
    1. Navigate to BMC operator directory on the deployment node:
 
       ```
-      cd /home/{user}/bmc-operator
+      cd /home/{user}/BMCOperator
       ```
 
    2. Build the Docker image of BMC operator:
@@ -259,7 +259,7 @@ This document is shipped with the following comprehensive set of Resource Aggreg
       kubectl apply -f config/keys/config.yaml
       ```
 
-   8. Copy `rootCA.crt` and `rootCA.key` from `home/bruce/ODIM/odim-controller/scripts/certs/{deployment_name}/` to `/home/{user}/bmc-operator/bmc-templates/keys/`.
+   8. Copy `rootCA.crt` and `rootCA.key` from `home/bruce/ODIM/odim-controller/scripts/certs/{deployment_name}/` to `/home/{user}/BMCOperator/bmc-templates/keys/`.
 
    9. Run the following command to give permissions to generate keys and certificates:
 
@@ -272,7 +272,7 @@ This document is shipped with the following comprehensive set of Resource Aggreg
    11. Run the `gen_cert.sh` script to generate the required keys and signed certificates with rootCA.
 
        ```
-       cd /home/{user}/bmc-operator/bmc-templates/keys
+       cd /home/{user}/BMCOperator/bmc-templates/keys
        ```
 
        ```
@@ -281,7 +281,7 @@ This document is shipped with the following comprehensive set of Resource Aggreg
 
    12. Apply the secret:
        ```
-       cd /home/{user}/bmc-operator/bmc-templates/keys
+       cd /home/{user}/BMCOperator/bmc-templates/keys
        ```
        ```
        kubectl apply -f secret.yaml
@@ -290,7 +290,7 @@ This document is shipped with the following comprehensive set of Resource Aggreg
    13. Navigate to BMC operator directory on the deployment node:
 
        ```
-       cd /home/{user}/bmc-operator
+       cd /home/{user}/BMCOperator
        ```
 
    14. Apply the Persistent Volume and Persistent Volume Claim:
@@ -405,7 +405,7 @@ This procedure is mandatory for managing BMCs.
 1. Navigate to the `bmc-templates` directory. 
 
    ```
-   cd /home/{user}/bmc-operator/bmc-templates
+   cd /home/{user}/BMCOperator/bmc-templates
    ```
 
 2. Open the `odim.yaml` file.
@@ -442,7 +442,7 @@ This procedure is mandatory for managing BMCs.
    For encrypting and base64 encoding of the password use the following commands:
 
    ```
-   cd /home/{user}/bmc-operator/bmc-templates/keys
+   cd /home/{user}/BMCOperator/bmc-templates/keys
    ```
 
    ```
@@ -452,7 +452,7 @@ This procedure is mandatory for managing BMCs.
 3. Navigate to the `bmc-templates` directory.
 
    ```
-   cd /home/{user}/bmc-operator/bmc-templates
+   cd /home/{user}/BMCOperator/bmc-templates
    ```
    
 4. Update the following parameters in the `odim.yaml` file.
@@ -617,7 +617,7 @@ For creating role binding, see *https://kubernetes.io/docs/reference/access-auth
 1. Navigate to the BMC Operator directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. Open the `bmc.yaml` file in the `bmc-templates` directory:
@@ -914,7 +914,7 @@ For description of the properties in the sample output file, see the *[BMC addit
 1. Navigate to the BMC Operator directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. Open the `bmc-templates/bmc.yaml` object:
@@ -947,10 +947,10 @@ Alternatively, run `kubectl delete bmc -n{namespace} {bmc_object_name}` to delet
 
   # Applying BIOS settings on BMC
 
-1. Navigate to the `bmc-operator` directory:
+1. Navigate to the `BMCOperator` directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
    
 2. Open the `bios.yaml` file:
@@ -1262,7 +1262,7 @@ Alternatively, run `kubectl delete bmc -n{namespace} {bmc_object_name}` to delet
 1. Navigate to the home directory of the operator:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. Open the `boot.yaml` file:
@@ -1379,10 +1379,10 @@ Alternatively, run `kubectl delete bmc -n{namespace} {bmc_object_name}` to delet
 
 ## Adding a volume
 
-1. Navigate to the `bmc-operator` directory:
+1. Navigate to the `BMCOperator` directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. Open the `volume.yaml` file:
@@ -1486,7 +1486,7 @@ Alternatively, run `kubectl delete bmc -n{namespace} {bmc_object_name}` to delet
 1. Navigate to the BMC Operator directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. Edit `metadata.name` to the volume object name you wish to delete.
@@ -1516,7 +1516,7 @@ Alternatively, run `kubectl delete volume -n {namespace} {volume_object_name}` t
 1. Navigate to the BMC Operator directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. Open the `firmware.yaml` file:
@@ -1688,7 +1688,7 @@ You can also verify the firmware upgrade or downgrade in BMC object by viewing t
 1. Navigate to the BMC Operator directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. To delete the firmware file of a specific BMC, make sure you edit the `name` parameter in the firmware file to match the name of the BMC.
@@ -1718,7 +1718,7 @@ Alternatively, run `kubectl delete firmware -n {namespace} {firmware_object_name
 1. Navigate to the BMC Operator directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. Open the `eventsubscription.yaml` file:
@@ -1863,7 +1863,7 @@ kubectl get eventsmessageregistry -n {bmc_namespace}
 1. Navigate to the BMC Operator directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
 
 2. Open the `bmc-templates/eventsubscription.yaml` object:
@@ -2627,10 +2627,10 @@ curl  https://xxx.xxx.xxx.xxx:6443/apis/infra.io.odimra/v1/namespaces/bmc-op/bmc
 # Uninstalling BMC Operator
 
 
-1. Navigate to the home directory of bmc-operator:
+1. Navigate to the `BMCOperator` directory:
 
    ```
-   cd /home/{user}/bmc-operator
+   cd /home/{user}/BMCOperator
    ```
    
 2. Make sure you have deleted all bmc files you applied. See *[Deleting a BMC](#deleting-a-bmc)* for instructions.
@@ -2641,7 +2641,7 @@ curl  https://xxx.xxx.xxx.xxx:6443/apis/infra.io.odimra/v1/namespaces/bmc-op/bmc
    kubectl delete -f bmc-templates/odim.yaml
    ```
    
-4. Undeploy the bmc-operator:
+4. Undeploy the BMC Operator:
 
    ```
    make undeploy
