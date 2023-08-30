@@ -1,0 +1,15 @@
+resources:
+- bases/infra.io.odimra_odims.yaml
+- bases/infra.io.odimra_bmcs.yaml
+- bases/infra.io.odimra_biossettings.yaml
+- bases/infra.io.odimra_biosschemaregistries.yaml
+- bases/infra.io.odimra_bootordersettings.yaml
+- bases/infra.io.odimra_volumes.yaml
+- bases/infra.io.odimra_firmwares.yaml
+- bases/infra.io.odimra_eventsubscriptions.yaml
+- bases/infra.io.odimra_eventsmessageregistries.yaml
+
+patchesStrategicMerge:
+
+configurations:
+- kustomizeconfig.yaml

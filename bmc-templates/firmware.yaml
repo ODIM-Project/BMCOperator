@@ -1,0 +1,12 @@
+apiVersion: infra.io.odimra/v1
+kind: Firmware
+metadata:
+  name: # same as bmc name
+  namespace: bmc-op
+spec:
+  image:
+     imageLocation:
+     auth:
+      password:
+      username:
+  transferProtocol: http/https

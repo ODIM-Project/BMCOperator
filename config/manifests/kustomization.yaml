@@ -1,0 +1,5 @@
+resources:
+- bases/odim-operator.clusterserviceversion.yaml
+- ../default
+- ../samples
+- ../scorecard
