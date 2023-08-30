@@ -1,0 +1,20 @@
+# permissions for end users to view bootordersettings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bootordersettings-viewer-role
+rules:
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - bootordersettings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - bootordersettings/status
+  verbs:
+  - get

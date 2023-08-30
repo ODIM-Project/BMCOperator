@@ -1,0 +1,39 @@
+# Build the manager binary
+FROM golang:1.19.5 as builder
+
+ENV GO111MODULE=auto
+WORKDIR /bmc-operator
+# Copy the Go Modules manifests
+COPY go.mod .
+COPY go.sum .
+# cache deps before building and copying source so that we don't need to re-download as much
+# and so that source changes don't invalidate our downloaded layer
+RUN go mod download
+
+# Copy the go source
+COPY main/main.go main/main.go
+COPY api/v1 api/v1
+COPY controllers/ controllers/
+COPY logs/ logs/
+COPY config/ config/
+COPY dockerfiles/scripts/ dockerfiles/scripts/
+# Build
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main/main.go
+
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM ubuntu:22.04
+
+WORKDIR /
+COPY --from=builder /bmc-operator/manager .
+COPY --from=builder /bmc-operator/config/keys /bmc-operator/config/keys
+COPY --from=builder /bmc-operator/dockerfiles/scripts/start_bmc_operator.sh .
+RUN mkdir /var/log/operator_logs
+RUN chown -R 2021:2021 /var/log/operator_logs
+RUN groupadd -r -g 2021 odimra && /usr/sbin/useradd -s /bin/bash -u 2021 -m -d /home/odimra -r -g odimra odimra 
+RUN mkdir /etc/config && chown 2021:2021 /etc/config
+RUN chown -R 2021:2021 /bmc-operator/config/keys
+RUN chown 2021:2021 start_bmc_operator.sh
+RUN chmod 755 start_bmc_operator.sh
+USER 2021:2021
+ # Entrypoint is taken from manager.yaml file
