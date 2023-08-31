@@ -1,0 +1,31 @@
+# permissions for end users to edit eventsmessageregistries.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: eventsmessageregistry-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: bmc-operator
+    app.kubernetes.io/part-of: bmc-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: eventsmessageregistry-editor-role
+rules:
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsmessageregistries
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsmessageregistries/status
+  verbs:
+  - get

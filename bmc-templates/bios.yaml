@@ -1,0 +1,10 @@
+apiVersion: infra.io.odimra/v1
+kind: BiosSetting
+metadata:
+  name: <name as given for bmc (shortName/fqdn/IPAddress)>
+  namespace: bmc-op
+spec:
+    bmcName: <bmc_name>
+    systemID:  <systemID>
+    serialNumber: <serialNumber>
+    biosAttributes:  #example: BootMode: "LegacyBios"

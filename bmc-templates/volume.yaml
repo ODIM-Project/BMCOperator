@@ -1,0 +1,9 @@
+apiVersion: infra.io.odimra/v1
+kind: Volume
+metadata:
+  name: <bmcName>.<volumeName>
+  namespace: <namespace>
+spec:
+  storageControllerID:
+  RAIDType:
+  drives:
