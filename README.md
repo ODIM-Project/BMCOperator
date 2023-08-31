@@ -122,7 +122,7 @@ For three-node deployment, the northbound management and orchestration systems a
 
 ## Compatibility matrix
 
-The following table lists the software and the hardware components and their versions that are compatible with BMC Operator. Software is used to deploy the BMC Operator. Hardware refers to the devices on which the functions of the BMC Operator are tested.
+The following table lists the software components and their supported versions that are compatible with BMC Operator. These software components are used to deploy the BMC Operator. 
 
 | Software                     | Version  |
 | ---------------------------- | -------- |
@@ -133,11 +133,6 @@ The following table lists the software and the hardware components and their ver
 | Docker                       | 20.10.12 |
 | kubectl                      | 1.17.3   |
 | Golang                       | 1.19.5   |
-
-| Hardware            | Version         |
-| ------------------- | --------------- |
-| HPE ProLiant server | HPE iLO 5 v2.78 |
-| HPE ProLiant server | HPE iLO 6 v1.30 |
 
 
 
