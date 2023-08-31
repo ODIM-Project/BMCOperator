@@ -118,7 +118,7 @@ For one-node deployment, the northbound management and orchestration systems acc
 
 For three-node deployment, the northbound management and orchestration systems access the BMC Operator through the virtual IP address/hostname. BMC Operator further communicates with Resource Aggregator for ODIM through the same controller IP address/hostname. 
 
-> **NOTE**: For information on Resource Aggregator for ODIM communications, see [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/tree/development#readme). 
+> **NOTE**: For information on Resource Aggregator for ODIM communications, see [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/blob/main/README.md). 
 
 ## Compatibility matrix
 
@@ -145,9 +145,9 @@ The following table lists the software and the hardware components and their ver
 
 This document is shipped with the following comprehensive set of Resource Aggregator for ODIM electronic documentation:
 
-- [*Resource Aggregator for Open Distributed Infrastructure Management™ API Readme*](https://github.com/ODIM-Project/ODIM/blob/development/docs/README.md)—This document covers usage information for Resource Aggregator for ODIM including reference information for the northbound REST APIs that the management and orchestration systems use to communicate with southbound infrastructure elements through their respective plugins.
-- [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/tree/development#readme)—This document covers detailed deployment instructions of Resource Aggregator for ODIM and the plugins. You can also find information on post-deployment instructions and various use cases of Resource Aggregator for ODIM.
-- [*Resource Aggregator for Open Distributed Infrastructure Management™ Troubleshooting Readme*](https://github.com/ODIM-Project/ODIM/blob/development/docs/Troubleshooting.md)—This document covers information on any common issues you might experience while deploying or using Resource Aggregator for ODIM and their possible workarounds. You can also find answers to some of the Frequently Asked Questions related to Resource Aggregator for ODIM.
+- [*Resource Aggregator for Open Distributed Infrastructure Management™ API Readme*](https://github.com/ODIM-Project/ODIM/blob/main/docs/README.md)—This document covers usage information for Resource Aggregator for ODIM including reference information for the northbound REST APIs that the management and orchestration systems use to communicate with southbound infrastructure elements through their respective plugins.
+- [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/blob/main/README.md)—This document covers detailed deployment instructions of Resource Aggregator for ODIM and the plugins. You can also find information on post-deployment instructions and various use cases of Resource Aggregator for ODIM.
+- [*Resource Aggregator for Open Distributed Infrastructure Management™ Troubleshooting Readme*](https://github.com/ODIM-Project/ODIM/blob/main/docs/Troubleshooting.md)—This document covers information on any common issues you might experience while deploying or using Resource Aggregator for ODIM and their possible workarounds. You can also find answers to some of the Frequently Asked Questions related to Resource Aggregator for ODIM.
 
 
 
@@ -330,7 +330,7 @@ This document is shipped with the following comprehensive set of Resource Aggreg
 
 ## BMC Operator deployment configuration file
 
-> **PREREQUISITE**: Resource Aggregator for ODIM must be deployed and running on your system. See the [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/tree/development#readme) for instructions on deploying Resource Aggregator for ODIM.
+> **PREREQUISITE**: Resource Aggregator for ODIM must be deployed and running on your system. See the [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/blob/main/README.md) for instructions on deploying Resource Aggregator for ODIM.
 
 Before deploying the BMC Operator, update the deployment configuration file `config.yaml` available in the `config/keys` repository. It contains all the configuration information required to deploy the BMC Operator.
 
@@ -389,7 +389,7 @@ The following table lists and describes all the configuration parameters require
 | metricsBindPort                       | Metrics port for BMC operator.                               |
 | healthProbeBindPort                   | Health port for BMC operator.                                |
 | eventClientPort                       | HTTP server port listening to Resource Aggregator for ODIM events for event-based reconciliation. |
-| logLevel                              | Enables you to set filters for your log levels based on your requirement. For more information, see *Log Levels* in *Appendix* in [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/tree/development#readme). |
+| logLevel                              | Enables you to set filters for your log levels based on your requirement. For more information, see *Log Levels* in *Appendix* in [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/blob/main/README.md). |
 | logFormat                             | Enables logging in syslog format or JSON format.             |
 | kubeConfigPath                        | Used for development process when BMC Operator runs with `make install` command. Keep this value empty when you deploy BMC Operator as a pod. |
 | namespace                             | Namespace in which the BMC Operator is deployed.             |
@@ -613,7 +613,7 @@ For creating role binding, see *https://kubernetes.io/docs/reference/access-auth
 > **PREREQUISITES**: 
 >
 > - Before adding BMC, ensure BMC Operator is able to connect to Resource Aggregator for ODIM. Also, generate a certificate for it using the root CA certificate of Resource Aggregator for ODIM. 
-> - To use your own root CA certificate to generate a certificate, you must first append it to the existing root CA certificate. For instructions, see *Appending CA certificates to the existing Root CA certificate* section in [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/tree/development#readme).
+> - To use your own root CA certificate to generate a certificate, you must first append it to the existing root CA certificate. For instructions, see *Appending CA certificates to the existing Root CA certificate* section in [*Resource Aggregator for Open Distributed Infrastructure Management™ Getting Started Readme*](https://github.com/ODIM-Project/ODIM/blob/main/README.md).
 
 1. Navigate to the BMC Operator directory:
 
@@ -1980,7 +1980,7 @@ Besides the kubectl tool, you can also use APIs to perform the BMC Operator oper
 
 The BMC Operator APIs are designed as per DMTF's *[Redfish® Scalable Platforms API (Redfish) specification 1.15.1](https://www.dmtf.org/sites/default/files/standards/documents/DSP0266_1.15.1.pdf)* and are Redfish-compliant. The Redfish® standard is a suite of specifications that deliver an industry standard protocol providing a RESTful interface for the simple and secure management of servers, storage, networking, multivendor, converged and hybrid IT infrastructure. Redfish uses JSON and OData.
 
-For more information on using curl commands and APIs, see *API usage and access guidelines* section in [*Resource Aggregator for Open Distributed Infrastructure Management™ API Readme*](https://github.com/ODIM-Project/ODIM/blob/development/docs/README.md).
+For more information on using curl commands and APIs, see *API usage and access guidelines* section in [*Resource Aggregator for Open Distributed Infrastructure Management™ API Readme*](https://github.com/ODIM-Project/ODIM/blob/main/docs/README.md).
 
 
 
