@@ -107,17 +107,21 @@ func (bo *bootUtils) updateBootSettings() bool {
 		}
 		systemID = bootBmcObj.Status.BmcSystemID
 	} else if bo.bootObj.Spec.SystemID != "" {
+		bootBmcObj = bo.commonRec.GetBmcObject(bo.ctx, constants.StatusBmcSystemID, bo.bootObj.Spec.SystemID, bo.bootObj.Namespace)
+		if bootBmcObj.Status.BmcSystemID == "" {
+			l.LogWithFields(bo.ctx).Info("Check if BMC is registered..")
+			return false
+		}
 		systemID = bo.bootObj.Spec.SystemID
 	} else if bo.bootObj.Spec.SerialNo != "" {
-		bootBmcObj := bo.commonRec.GetBmcObject(bo.ctx, "status.serialNumber", bo.bootObj.Spec.SerialNo, bo.bootObj.Namespace)
+		bootBmcObj = bo.commonRec.GetBmcObject(bo.ctx, "status.serialNumber", bo.bootObj.Spec.SerialNo, bo.bootObj.Namespace)
 		if bootBmcObj.Status.SerialNumber == "" {
 			l.LogWithFields(bo.ctx).Info("Check if BMC is registered..")
 			return false
 		}
-		bootBmcIP = bootBmcObj.Spec.BmcDetails.Address
-		systemID = bootBmcObj.Status.BmcSystemID
 	}
-
+	bootBmcIP = bootBmcObj.Spec.BmcDetails.Address
+	systemID = bootBmcObj.Status.BmcSystemID
 	ok := bo.UpdateBootDetails(bo.ctx, systemID, bootBmcIP, bo.bootObj, bootBmcObj)
 	if ok {
 		sysDetails := bo.commonUtil.GetBmcSystemDetails(bo.ctx, bootBmcObj)
