@@ -107,6 +107,16 @@ func (r *OdimReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 		return ctrl.Result{}, nil
 	}
+	connected := odimUtil.checkOdimConnection()
+	if connected {
+		l.LogWithFields(ctx).Info("Odim successfully registered!, updating connection methods")
+		odimUtil.updateConnectionMethodVariants()
+		l.LogWithFields(ctx).Info("Successfully added all connection methods!")
+	} else {
+		r.Delete(ctx, odimObj)
+		return ctrl.Result{}, nil
+	}
+
 	// Add finalizer for this CR
 	if !controllerutil.ContainsFinalizer(odimObj, odimFinalizer) {
 		controllerutil.AddFinalizer(odimObj, odimFinalizer)
@@ -116,15 +126,6 @@ func (r *OdimReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			return ctrl.Result{}, err
 		}
 	}
-	connected := odimUtil.checkOdimConnection()
-	if connected {
-		l.LogWithFields(ctx).Info("Odim successfully registered!, updating connection methods")
-		odimUtil.updateConnectionMethodVariants()
-		l.LogWithFields(ctx).Info("Successfully added all connection methods!")
-	} else {
-		return ctrl.Result{}, nil
-	}
-
 	commonRec.GetUpdatedOdimObject(ctx, req.NamespacedName, odimObj)
 	// starting event listener
 	go eventsClient.Start(r.Client, r.Scheme)
