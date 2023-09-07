@@ -62,3 +62,22 @@ EOF
 openssl genrsa -out bmc.private 4096
 openssl rsa -in bmc.private -out bmc.public -pubout -outform PEM
 
+rootCA=$(cat rootCA.crt)
+clientCrt=$(cat ${FileName}.crt)
+clientKey=$(cat ${FileName}.key)
+
+# Append values to values.yaml
+yq eval ".data.rootCACert = \"$rootCA\"" values.yaml > values1.yaml
+yq eval ".data.eventClientCert = \"$clientCrt\"" values1.yaml > values2.yaml
+yq eval ".data.eventClientKey = \"$clientKey\"" values2.yaml > values3.yaml
+rm values.yaml values1.yaml values2.yaml
+mv values3.yaml values.yaml
+
+publicKey=$(cat bmc.public)
+privateKey=$(cat bmc.private)
+
+# Append values to values.yaml
+yq eval ".data.privateKey = \"$privateKey\"" values.yaml > values1.yaml
+yq eval ".data.publicKey = \"$publicKey\"" values1.yaml > values2.yaml
+rm values.yaml values1.yaml
+mv values2.yaml values.yaml
