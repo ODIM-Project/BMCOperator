@@ -22,10 +22,10 @@ data:
     - ResourceAdded
     - ResourceRemoved
     - Alert
-    operatorEventSubsciptionMessageIds:
+    operatorEventSubscriptionMessageIds:
     - ResourceEvent.1.2.0.ResourceRemoved
     - ResourceEvent.1.2.0.ResourceAdded
     - iLOEvents.3.2.ServerPostDiscoveryComplete
     - iLOEvents.3.2.ServerPostComplete
-    operatorEventSubsciptionResourceTypes:
+    operatorEventSubscriptionResourceTypes:
     - ComputerSystems

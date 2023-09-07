@@ -1,0 +1,19 @@
+reconciliation: Accommodate
+reconcileInterval: 24
+logLevel: debug
+logFormat: syslog
+namespace: bmc-op
+image: <operator image path>
+username: <plaintext username>
+password: <encrypted password>
+operatorEventSubscriptionEventTypes:
+  - ResourceAdded
+  - ResourceRemoved
+  - Alert
+operatorEventSubscriptionMessageIds:
+  - ResourceEvent.1.2.0.ResourceRemoved
+  - ResourceEvent.1.2.0.ResourceAdded
+  - iLOEvents.3.2.ServerPostDiscoveryComplete
+  - iLOEvents.3.2.ServerPostComplete
+operatorEventSubscriptionResourceTypes: 
+  - ComputerSystems

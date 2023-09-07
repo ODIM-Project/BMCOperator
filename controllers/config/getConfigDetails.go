@@ -53,9 +53,9 @@ type ConfigModel struct {
 	KubeConfigPath                         string      `yaml:"kubeConfigPath"`
 	EventSubReconciliation                 string      `yaml:"eventSubReconciliation"`
 	Namespace                              string      `yaml:"namespace"`
-	OperatorEventSubscriptionMeesageIds    []string    `yaml:"operatorEventSubsciptionMessageIds"`
+	OperatorEventSubscriptionMeesageIds    []string    `yaml:"operatorEventSubscriptionMessageIds"`
 	OperatorEventSubscriptionEventTypes    []string    `yaml:"operatorEventSubscriptionEventTypes"`
-	OperatorEventSubscriptionResourceTypes []string    `yaml:" operatorEventSubsciptionResourceTypes"`
+	OperatorEventSubscriptionResourceTypes []string    `yaml:" operatorEventSubscriptionResourceTypes"`
 }
 
 var (
