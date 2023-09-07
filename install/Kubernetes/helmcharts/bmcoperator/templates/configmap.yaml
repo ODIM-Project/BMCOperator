@@ -56,15 +56,15 @@ data:
     logFormat: {{ .Values.logFormat }}
     kubeConfigPath: # provide kube config file path as value when running with 'make install run' command
     namespace: {{ .Values.namespace }}
-    operatorEventSubscriptionEventTypes: |-
+    operatorEventSubscriptionEventTypes:
   {{- range .Values.operatorEventSubscriptionEventTypes }}
     - {{ . }}
   {{- end }}
-    operatorEventSubscriptionMessageIds: |-
+    operatorEventSubscriptionMessageIds:
   {{- range .Values.operatorEventSubscriptionMessageIds }}
     - {{ . }}
   {{- end }}
-    operatorEventSubsciptionResourceTypes: |-
+    operatorEventSubsciptionResourceTypes:
   {{- range .Values.operatorEventSubscriptionResourceTypes }}
     - {{ . }}
   {{- end }}
