@@ -82,6 +82,8 @@ spec:
         volumeMounts:
         - mountPath: /var/log/operator_logs
           name: operator-log
+        - name: bmc-operator-config-vol
+          mountPath: /etc/bmc-operator-config
       securityContext:
         runAsNonRoot: true
       serviceAccountName: bmc-opcontroller-manager
@@ -90,3 +92,8 @@ spec:
       - name: operator-log
         persistentVolumeClaim:
           claimName: operator-log-claim
+      - name: bmc-operator-config-vol
+        projected:
+          sources:
+          - configMap:
+              name: bmc-operator-config
