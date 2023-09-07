@@ -61,11 +61,11 @@ data:
     - {{ . }}
   {{- end }}
     operatorEventSubscriptionMessageIds: |-
-  {{- range .Values.operatorEventSubsciptionMessageIds }}
+  {{- range .Values.operatorEventSubscriptionMessageIds }}
     - {{ . }}
   {{- end }}
     operatorEventSubsciptionResourceTypes: |-
-  {{- range .Values.operatorEventSubsciptionResourceTypes }}
+  {{- range .Values.operatorEventSubscriptionResourceTypes }}
     - {{ . }}
   {{- end }}
 
