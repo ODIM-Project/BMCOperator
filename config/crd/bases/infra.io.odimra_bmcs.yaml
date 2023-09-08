@@ -55,6 +55,7 @@ spec:
             description: BmcSpec defines the desired state of Bmc
             properties:
               bmc:
+                description: BMC defines a struct to hold basic properties of a BMC
                 properties:
                   address:
                     type: string
@@ -71,6 +72,8 @@ spec:
                 - resetType
                 type: object
               credentials:
+                description: Credential struct holds username and password for the
+                  BMC
                 properties:
                   password:
                     type: string
@@ -130,7 +133,6 @@ spec:
                         type: string
                       type: array
                   required:
-                  - drives
                   - supportedRAIDLevel
                   type: object
                 type: object

@@ -30,7 +30,7 @@ type DriveDetails struct {
 // ArrayControllers defines the storage controllers for BMC
 type ArrayControllers struct {
 	SupportedRAIDLevel []string                `json:"supportedRAIDLevel"`
-	Drives             map[string]DriveDetails `json:"drives"`
+	Drives             map[string]DriveDetails `json:"drives,omitempty"`
 }
 
 // BMC defines a struct to hold basic properties of a BMC
