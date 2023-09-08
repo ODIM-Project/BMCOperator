@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bmc-opmanager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: bmc-opmanager-role
+subjects:
+- kind: ServiceAccount
+  name: bmc-opcontroller-manager
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bmc-opproxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: bmc-opproxy-role
+subjects:
+- kind: ServiceAccount
+  name: bmc-opcontroller-manager
+  namespace: {{ .Values.namespace }}

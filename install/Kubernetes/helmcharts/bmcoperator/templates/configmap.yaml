@@ -1,0 +1,50 @@
+apiVersion: v1
+data:
+  controller_manager_config.yaml: |
+    apiVersion: controller-runtime.sigs.k8s.io/v1alpha1
+    kind: ControllerManagerConfig
+    health:
+      healthProbeBindAddress: :8081
+    metrics:
+      bindAddress: 127.0.0.1:8080
+    webhook:
+      port: 9443
+    leaderElection:
+      leaderElect: true
+      resourceName: a247721e.odimra
+kind: ConfigMap
+metadata:
+  name: bmc-opmanager-config
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bmc-operator-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    type: config
+data:
+  config.yaml: |
+    reconciliation : {{ .Values.reconciliation }}
+    eventSubReconciliation: {{ .Values.eventSubReconciliation }}
+    reconcileInterval: "{{ .Values.reconcileInterval }}"
+    secretName: bmc-secret
+    metricsBindPort: "8080"
+    healthProbeBindPort: "8081"
+    eventClientPort: "45000"
+    logLevel: {{ .Values.logLevel }}
+    logFormat: {{ .Values.logFormat }}
+    namespace: {{ .Values.namespace }}
+    EventSubscriptionEventTypes:
+  {{- range .Values.EventSubscriptionEventTypes }}
+    - {{ . }}
+  {{- end }}
+    operatorEventSubscriptionMessageIds:
+  {{- range .Values.EventSubscriptionMessageIds }}
+    - {{ . }}
+  {{- end }}
+    EventSubsciptionResourceTypes:
+  {{- range .Values.EventSubscriptionResourceTypes }}
+    - {{ . }}
+  {{- end }}
