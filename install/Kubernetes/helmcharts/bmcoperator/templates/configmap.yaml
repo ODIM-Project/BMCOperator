@@ -12,29 +12,6 @@ data:
     leaderElection:
       leaderElect: true
       resourceName: a247721e.odimra
-kind: ConfigMap
-metadata:
-  name: bmc-opmanager-config
-  namespace: {{ .Values.namespace }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: config
-  namespace: {{ .Values.namespace }}
-  labels:
-    type: config
-data:
-  reconciliation : {{ .Values.reconciliation }}
-  eventSubReconciliation: {{ .Values.reconciliation}}
-  reconcileInterval: "{{ .Values.reconcileInterval }}"
-  secretName: bmc-secret
-  metricsBindPort: "8080"
-  healthProbeBindPort: "8081"
-  eventClientPort: "45000"
-  logLevel: {{ .Values.logLevel }}
-  logFormat: {{ .Values.logFormat }}
-  kubeConfigPath: ""
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -46,27 +23,24 @@ metadata:
 data:
   config.yaml: |
     reconciliation : {{ .Values.reconciliation }}
-    eventSubReconciliation: Accommodate #Accommodate/Revert
+    eventSubReconciliation: {{ .Values.eventSubReconciliation }}
     reconcileInterval: "{{ .Values.reconcileInterval }}"
     secretName: bmc-secret
-    metricsBindPort: "8080"  # cannot change at runtime (in string)
-    healthProbeBindPort: "8081" # cannot change at runtime (in string)
-    eventClientPort: "45000" # cannot change at runtime (in string)
+    metricsBindPort: "8080"
+    healthProbeBindPort: "8081"
+    eventClientPort: "45000"
     logLevel: {{ .Values.logLevel }}
     logFormat: {{ .Values.logFormat }}
-    kubeConfigPath: # provide kube config file path as value when running with 'make install run' command
     namespace: {{ .Values.namespace }}
-    operatorEventSubscriptionEventTypes:
-  {{- range .Values.operatorEventSubscriptionEventTypes }}
+    EventSubscriptionEventTypes:
+  {{- range .Values.EventSubscriptionEventTypes }}
     - {{ . }}
   {{- end }}
     operatorEventSubscriptionMessageIds:
-  {{- range .Values.operatorEventSubscriptionMessageIds }}
+  {{- range .Values.EventSubscriptionMessageIds }}
     - {{ . }}
   {{- end }}
-    operatorEventSubsciptionResourceTypes:
-  {{- range .Values.operatorEventSubscriptionResourceTypes }}
+    EventSubsciptionResourceTypes:
+  {{- range .Values.EventSubscriptionResourceTypes }}
     - {{ . }}
   {{- end }}
-
-
