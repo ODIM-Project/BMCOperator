@@ -504,15 +504,27 @@ func (bu *bmcUtils) updateDriveDetails() map[string]infraiov1.ArrayControllers {
 
 // GetManagerDetails used to get manager response
 func (bu *bmcUtils) GetManagerDetails() map[string]interface{} {
-	var uri string
-	if strings.Contains(bu.bmcObj.Spec.BmcDetails.ConnMethVariant, "DELL") {
-		uri = "/redfish/v1/Managers/" + strings.Replace(bu.bmcObj.Status.BmcSystemID, "System", "iDRAC", -1)
-	} else {
-		uri = "/redfish/v1/Managers/" + bu.bmcObj.Status.BmcSystemID
+	systemUUID := strings.Split(bu.bmcObj.Status.BmcSystemID, ".")[0]
+	resp, sCode, err := bu.bmcRestClient.Get("/redfish/v1/Managers/", fmt.Sprintf("Fetching managers collection details"))
+	if err != nil {
+		l.LogWithFields(bu.ctx).Errorf("Failed to get managers collection details with error: %v", err)
 	}
-	resp, sCode, err := bu.bmcRestClient.Get(uri, fmt.Sprintf("Fetching manager details for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
 	if sCode == http.StatusOK {
-		return resp
+		members := resp["Members"].([]interface{})
+		if len(members) > 0 {
+			for _, member := range members {
+				managerURI := member.(map[string]interface{})["@odata.id"].(string)
+				uri := strings.Split(managerURI, "/")
+				systemID := uri[len(uri)-1]
+				managerSysUUID := strings.Split(systemID, ".")[0]
+				if systemUUID == managerSysUUID {
+					resp, sCode, err = bu.bmcRestClient.Get(managerURI, fmt.Sprintf("Fetching manager details for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
+					if sCode == http.StatusOK {
+						return resp
+					}
+				}
+			}
+		}
 	}
 	l.LogWithFields(bu.ctx).Error(fmt.Sprintf("Failed getting manager details for %s BMC: Got %d from odim: %s", bu.bmcObj.Spec.BmcDetails.Address, sCode, err.Error()))
 	return nil
