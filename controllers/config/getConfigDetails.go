@@ -42,20 +42,20 @@ var confMutex = &sync.RWMutex{}
 
 // ConfigModel contains config values (Mandatory values)
 type ConfigModel struct {
-	Reconciliation                         string      `yaml:"reconciliation"`
-	ReconcileInterval                      string      `yaml:"reconcileInterval"`
-	SecretName                             string      `yaml:"secretName"`
-	MetricPort                             string      `yaml:"metricsBindPort"`
-	HealthPort                             string      `yaml:"healthProbeBindPort"`
-	EventClientPort                        string      `yaml:"eventClientPort"`
-	LogLevel                               log.Level   `yaml:"logLevel"`
-	LogFormat                              l.LogFormat `yaml:"logFormat"`
-	KubeConfigPath                         string      `yaml:"kubeConfigPath"`
-	EventSubReconciliation                 string      `yaml:"eventSubReconciliation"`
-	Namespace                              string      `yaml:"namespace"`
-	OperatorEventSubscriptionMeesageIds    []string    `yaml:"operatorEventSubsciptionMessageIds"`
-	OperatorEventSubscriptionEventTypes    []string    `yaml:"operatorEventSubscriptionEventTypes"`
-	OperatorEventSubscriptionResourceTypes []string    `yaml:" operatorEventSubsciptionResourceTypes"`
+	Reconciliation                 string      `yaml:"reconciliation"`
+	ReconcileInterval              string      `yaml:"reconcileInterval"`
+	SecretName                     string      `yaml:"secretName"`
+	MetricPort                     string      `yaml:"metricsBindPort"`
+	HealthPort                     string      `yaml:"healthProbeBindPort"`
+	EventClientPort                string      `yaml:"eventClientPort"`
+	LogLevel                       log.Level   `yaml:"logLevel"`
+	LogFormat                      l.LogFormat `yaml:"logFormat"`
+	KubeConfigPath                 string      `yaml:"kubeConfigPath"`
+	EventSubReconciliation         string      `yaml:"eventSubReconciliation"`
+	Namespace                      string      `yaml:"namespace"`
+	EventSubscriptionMessageIds    []string    `yaml:"EventSubscriptionMessageIds"`
+	EventSubscriptionEventTypes    []string    `yaml:"EventSubscriptionEventTypes"`
+	EventSubscriptionResourceTypes []string    `yaml:"EventSubscriptionResourceTypes"`
 }
 
 var (

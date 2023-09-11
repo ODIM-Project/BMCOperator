@@ -1,0 +1,18 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: operator-log
+  namespace: {{ .Values.namespace }}
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  claimRef:
+    namespace: {{ .Values.namespace }}
+    name: operator-log-claim
+  hostPath:
+    path: /var/log/operator_logs

@@ -70,9 +70,9 @@ func GetEventSubscriptionPayload(destination string) []byte {
 	payload := EventSubscriptionPayload{
 		Name:                 DefaultEventSubscriptionName,
 		Destination:          destination + "/OdimEvents",
-		EventTypes:           config.Data.OperatorEventSubscriptionEventTypes,
-		MessageIds:           config.Data.OperatorEventSubscriptionMeesageIds,
-		ResourceTypes:        config.Data.OperatorEventSubscriptionResourceTypes,
+		EventTypes:           config.Data.EventSubscriptionEventTypes,
+		MessageIds:           config.Data.EventSubscriptionMessageIds,
+		ResourceTypes:        config.Data.EventSubscriptionResourceTypes,
 		Context:              DefaultEventSubscriptionContext,
 		Protocol:             "Redfish",
 		SubscriptionType:     "RedfishEvent",

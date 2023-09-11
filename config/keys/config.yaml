@@ -18,14 +18,14 @@ data:
     logFormat: syslog
     kubeConfigPath: # provide kube config file path as value when running with 'make install run' command
     namespace: bmc-op
-    operatorEventSubscriptionEventTypes:
+    EventSubscriptionEventTypes:
     - ResourceAdded
     - ResourceRemoved
     - Alert
-    operatorEventSubsciptionMessageIds:
+    EventSubscriptionMessageIds:
     - ResourceEvent.1.2.0.ResourceRemoved
     - ResourceEvent.1.2.0.ResourceAdded
     - iLOEvents.3.2.ServerPostDiscoveryComplete
     - iLOEvents.3.2.ServerPostComplete
-    operatorEventSubsciptionResourceTypes:
+    EventSubscriptionResourceTypes:
     - ComputerSystems

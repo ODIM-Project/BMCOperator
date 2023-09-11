@@ -1,0 +1,97 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.1
+  creationTimestamp: null
+  name: volumes.infra.io.odimra
+spec:
+  group: infra.io.odimra
+  names:
+    kind: Volume
+    listKind: VolumeList
+    plural: volumes
+    singular: volume
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.volumeName
+      name: VolumeName
+      type: string
+    - jsonPath: .status.volumeID
+      name: VolumeID
+      type: string
+    - jsonPath: .status.RAIDType
+      name: RAIDType
+      type: string
+    - jsonPath: .status.capacityBytes
+      name: CapacityBytes
+      type: string
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: Volume is the Schema for the volumes API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Bmcs should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Bmcs may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: VolumeSpec defines the desired state of Volume
+            properties:
+              RAIDType:
+                type: string
+              drives:
+                items:
+                  type: integer
+                type: array
+              storageControllerID:
+                type: string
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            description: VolumeStatus defines the observed state of Volume
+            properties:
+              Identifiers:
+                properties:
+                  DurableName:
+                    type: string
+                  DurableNameFormat:
+                    type: string
+                required:
+                - DurableName
+                - DurableNameFormat
+                type: object
+              RAIDType:
+                type: string
+              capacityBytes:
+                type: string
+              drives:
+                items:
+                  type: integer
+                type: array
+              storageControllerID:
+                type: string
+              volumeID:
+                type: string
+              volumeName:
+                type: string
+            required:
+            - Identifiers
+            - RAIDType
+            - capacityBytes
+            - drives
+            - storageControllerID
+            - volumeID
+            - volumeName
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

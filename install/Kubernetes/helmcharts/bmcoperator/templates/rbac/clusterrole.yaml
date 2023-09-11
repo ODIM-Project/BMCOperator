@@ -1,0 +1,308 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: bmc-opmanager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - '*'
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biosschemaregistries
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biosschemaregistries/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biosschemaregistries/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biossettings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biossettings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - biossettings/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - bmcs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - bmcs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - bmcs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - bootordersettings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - bootordersettings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - bootordersettings/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsmessageregistries
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsmessageregistries/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsmessageregistries/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsubscriptions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsubscriptions/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - eventsubscriptions/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - firmwares
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - firmwares/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - firmwares/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - odims
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - odims/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - odims/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - volumes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - volumes/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infra.io.odimra
+  resources:
+  - volumes/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bmc-opmetrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bmc-opproxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create

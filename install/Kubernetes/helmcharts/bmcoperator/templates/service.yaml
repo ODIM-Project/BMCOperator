@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: manager
+    control-plane: controller-manager
+  name: bmc-opcontroller-manager
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - nodePort: 32123
+    port: 45000
+  selector:
+    app: manager
+    control-plane: controller-manager
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: bmc-opcontroller-manager-metrics-service
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    control-plane: controller-manager
