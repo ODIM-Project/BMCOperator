@@ -260,9 +260,13 @@ func removeEventsSubscription(ctx context.Context, restClient restclient.RestCli
 					l.LogWithFields(ctx).Errorf("error while deleting subscription for bmc operator: %s", err.Error())
 					return false
 				}
-				if resp.StatusCode == http.StatusOK {
-					l.LogWithFields(ctx).Infof("deleted events subscription with ID %s", subs)
-					return true
+				if resp.StatusCode == http.StatusAccepted {
+					commonUtil := common.GetCommonUtils(restClient)
+					done, _ := commonUtil.MoniteringTaskmon(resp.Header, ctx, common.DELETEEVENTSUBSCRIPTION, "BmcOperatorSubscription")
+					if done {
+						l.LogWithFields(ctx).Infof("deleted events subscription with ID %s", subs)
+						return true
+					}
 				}
 			}
 		}
