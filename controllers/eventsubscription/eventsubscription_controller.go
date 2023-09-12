@@ -150,7 +150,7 @@ func (esu *eventsubscriptionUtils) CreateEventsubscription(eventSubObj *infraiov
 			return false, err
 		}
 		if resp.StatusCode == http.StatusAccepted {
-			done, _ := esu.commonUtil.MoniteringTaskmon(resp.Header, esu.ctx, common.EVENTSUBSCRIPTION, esu.eventSubObj.ObjectMeta.Name)
+			done, resp := esu.commonUtil.MoniteringTaskmon(resp.Header, esu.ctx, common.EVENTSUBSCRIPTION, esu.eventSubObj.ObjectMeta.Name)
 			if done {
 				l.LogWithFields(esu.ctx).Info("\nEventsubscription created successfully!\n")
 				l.LogWithFields(esu.ctx).Info("Updating Eventsubscription status...")
@@ -161,6 +161,8 @@ func (esu *eventsubscriptionUtils) CreateEventsubscription(eventSubObj *infraiov
 					l.LogWithFields(esu.ctx).Info("Eventsubscription status updated successfully!")
 				}
 				return true, nil
+			} else {
+				l.LogWithFields(esu.ctx).Errorf("\n\nEventsubscription creation failed with error: %v\n\n", resp)
 			}
 		}
 	}
@@ -361,11 +363,16 @@ func (esu *eventsubscriptionUtils) DeleteEventsubscription() bool {
 		l.LogWithFields(esu.ctx).Error(fmt.Sprintf("error while deleting event subscription with ID %s", esu.eventSubObj.Status.ID))
 		return false
 	}
-	if deleteResp.StatusCode == http.StatusOK {
-		l.LogWithFields(esu.ctx).Info(fmt.Sprintf("Successfully deleted event subscription with ID %s", esu.eventSubObj.Status.ID))
-		return true
+	var resp map[string]interface{}
+	var done bool
+	if deleteResp.StatusCode == http.StatusAccepted {
+		done, resp = esu.commonUtil.MoniteringTaskmon(deleteResp.Header, esu.ctx, common.DELETEEVENTSUBSCRIPTION, esu.eventSubObj.ObjectMeta.Name)
+		if done {
+			l.LogWithFields(esu.ctx).Info(fmt.Sprintf("Successfully deleted event subscription with ID %s", esu.eventSubObj.Status.ID))
+			return true
+		}
 	}
-	l.LogWithFields(esu.ctx).Info(fmt.Sprintf("Could not delete event subsscription with ID %s. Please try again..", esu.eventSubObj.Status.ID))
+	l.LogWithFields(esu.ctx).Info(fmt.Sprintf("Could not delete event subsscription with ID %s. Failed with error: %v. Please try again..", esu.eventSubObj.Status.ID, resp))
 	return false
 }
 
