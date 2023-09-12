@@ -25,16 +25,17 @@ import (
 
 // defines the operations
 const (
-	ADDBMC            = "AddBMC"
-	DELETEBMC         = "DeleteBMC"
-	UPDATEBMC         = "UpdateBMC"
-	RESETBMC          = "ResetBMC"
-	BOOTSETTING       = "BootSetting"
-	BIOSSETTING       = "BiosSetting"
-	CREATEVOLUME      = "CreateVolume"
-	DELETEVOLUME      = "DeleteVolume"
-	FIRMWARE          = "Firmware"
-	EVENTSUBSCRIPTION = "CreateEventSubscription"
+	ADDBMC                  = "AddBMC"
+	DELETEBMC               = "DeleteBMC"
+	UPDATEBMC               = "UpdateBMC"
+	RESETBMC                = "ResetBMC"
+	BOOTSETTING             = "BootSetting"
+	BIOSSETTING             = "BiosSetting"
+	CREATEVOLUME            = "CreateVolume"
+	DELETEVOLUME            = "DeleteVolume"
+	FIRMWARE                = "Firmware"
+	EVENTSUBSCRIPTION       = "CreateEventSubscription"
+	DELETEEVENTSUBSCRIPTION = "DeleteEventSubscription"
 )
 
 var (
@@ -139,4 +140,5 @@ var TaskmonLogsTable = map[string]string{
 	"201:CreateEventSubscription": "EventSubscription %s created successfully",
 	"400:CreateEventSubscription": "Invalid request for creating %s eventSubscription",
 	"409:CreateEventSubscription": "Subscription already exists with destination %s",
+	"200:DeleteEventSubscription": "Eventsubscription %s deletion is successful",
 }
