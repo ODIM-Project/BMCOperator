@@ -670,13 +670,19 @@ func (bu *bmcUtils) ResetSystem(isBiosUpdation bool, updateBmcDependents bool) b
 			biosUtil := bios.GetBiosUtils(bu.ctx, biosObj, bu.commonRec, bu.bmcRestClient, bu.namespace)
 			biosAttribute := getUpdatedBiosAttributes(bu.ctx, biosObj.Status.BiosAttributes, bu.bmcObj, biosUtil)
 			biosUtil.UpdateBiosAttributesOnReset(bu.bmcObj.Spec.BmcDetails.Address, biosAttribute)
-			sysDetails := bu.commonUtil.GetBmcSystemDetails(bu.ctx, bu.bmcObj)
-			if sysDetails != nil {
-				bootUtil := boot.GetBootUtils(bu.ctx, nil, bu.commonRec, bu.bmcRestClient, bu.commonUtil, bu.namespace)
-				bootAttribute := bootUtil.GetBootAttributes(sysDetails)
-				if bootAttribute != nil {
-					bootUtil.UpdateBootAttributesOnReset(bu.bmcObj.ObjectMeta.Name, bootAttribute)
+			bootObj := bu.commonRec.GetBootObject(bu.ctx, constants.MetadataName, bu.bmcObj.ObjectMeta.Name, bu.namespace)
+			oldBootAttribute := bootObj.Status.Boot
+			bootUtil := boot.GetBootUtils(bu.ctx, nil, bu.commonRec, bu.bmcRestClient, bu.commonUtil, bu.namespace)
+			for i := 0; i < 10; i++ {
+				sysDetails := bu.commonUtil.GetBmcSystemDetails(bu.ctx, bu.bmcObj)
+				if sysDetails != nil {
+					bootAttribute := bootUtil.GetBootAttributes(sysDetails)
+					if bootAttribute != nil && !reflect.DeepEqual(bootAttribute, oldBootAttribute) {
+						bootUtil.UpdateBootAttributesOnReset(bu.bmcObj.ObjectMeta.Name, bootAttribute)
+						break
+					}
 				}
+				time.Sleep(time.Duration(constants.SleepTime) * time.Second)
 			}
 			if strings.Contains(bu.bmcObj.Status.SystemReset, "Volume") {
 				strArr := strings.Split(bu.bmcObj.Status.SystemReset, " ")
@@ -698,9 +704,9 @@ func (bu *bmcUtils) ResetSystem(isBiosUpdation bool, updateBmcDependents bool) b
 
 func getUpdatedBiosAttributes(ctx context.Context, oldBiosAttributes map[string]string, bmcObj *infraiov1.Bmc, biosUtil bios.BiosInterface) map[string]string {
 	var updatedBiosAttributes map[string]string
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		biosAttribute := biosUtil.GetBiosAttributes(bmcObj)
-		if !reflect.DeepEqual(biosAttribute, oldBiosAttributes) {
+		if biosAttribute != nil && !reflect.DeepEqual(biosAttribute, oldBiosAttributes) {
 			updatedBiosAttributes = biosAttribute
 			break
 		}
