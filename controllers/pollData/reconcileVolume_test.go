@@ -140,6 +140,7 @@ func TestPollingReconciler_RevertVolumeDetails(t *testing.T) {
 				pollRestClient: &mockRestClient{},
 				commonUtil:     mockCommonUtil{},
 				volUtil:        mockVolumeUtil{},
+				bmcUtil:        &mockBmcUtil{},
 				namespace:      "bmc-op",
 			},
 		},

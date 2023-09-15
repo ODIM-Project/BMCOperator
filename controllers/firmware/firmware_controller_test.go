@@ -93,8 +93,8 @@ func Test_firmwareUtils_getFirmwareBody(t *testing.T) {
 	}
 }
 
+// comment the sleep in function and then run testcase
 func Test_firmwareUtils_updateFirmwareStatus(t *testing.T) {
-	// comment the sleep in function and then run testcase
 	type args struct {
 		status        string
 		firmVersion   string
@@ -163,8 +163,8 @@ func Test_formatForLabels(t *testing.T) {
 	}
 }
 
+// comment the sleep in function and then run testcase
 func Test_firmwareUtils_UpdateFirmwareLabels(t *testing.T) {
-	// comment the sleep in function and then run testcase
 	type args struct {
 		firmVersion string
 	}

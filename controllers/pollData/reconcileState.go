@@ -55,6 +55,7 @@ func (pr *PollingReconciler) RevertState() {
 			l.LogWithFields(pr.ctx).Error(fmt.Sprintf("error marshalling reset request for %s BMC", pr.bmcObject.ObjectMeta.Name), err)
 		}
 		resp, err := pr.pollRestClient.Post(resetPowerStateURI, fmt.Sprintf("Posting reset request to %s BMC", pr.bmcObject.ObjectMeta.Name), resetReq)
+		l.LogWithFields(pr.ctx).Debugf("Response of POST on %s:%v", resetPowerStateURI, resp)
 		if err != nil {
 			l.LogWithFields(pr.ctx).Error(fmt.Sprintf("error while posting reset request to %s BMC", pr.bmcObject.ObjectMeta.Name), err)
 			return

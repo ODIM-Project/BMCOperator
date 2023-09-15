@@ -25,17 +25,16 @@ import (
 
 // defines the operations
 const (
-	ADDBMC                  = "AddBMC"
-	DELETEBMC               = "DeleteBMC"
-	UPDATEBMC               = "UpdateBMC"
-	RESETBMC                = "ResetBMC"
-	BOOTSETTING             = "BootSetting"
-	BIOSSETTING             = "BiosSetting"
-	CREATEVOLUME            = "CreateVolume"
-	DELETEVOLUME            = "DeleteVolume"
-	FIRMWARE                = "Firmware"
-	EVENTSUBSCRIPTION       = "CreateEventSubscription"
-	DELETEEVENTSUBSCRIPTION = "DeleteEventSubscription"
+	ADDBMC            = "AddBMC"
+	DELETEBMC         = "DeleteBMC"
+	UPDATEBMC         = "UpdateBMC"
+	RESETBMC          = "ResetBMC"
+	BOOTSETTING       = "BootSetting"
+	BIOSSETTING       = "BiosSetting"
+	CREATEVOLUME      = "CreateVolume"
+	DELETEVOLUME      = "DeleteVolume"
+	FIRMWARE          = "Firmware"
+	EVENTSUBSCRIPTION = "CreateEventSubscription"
 )
 
 var (
@@ -45,8 +44,8 @@ var (
 type CommonInterface interface {
 	GetBmcSystemDetails(context.Context, *infraiov1.Bmc) map[string]interface{}
 	MoniteringTaskmon(headerInfo http.Header, ctx context.Context, operation, resourceName string) (bool, map[string]interface{})
-	BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body []byte, restClient restclient.RestClientInterface) (bool, map[string]interface{})
-	BmcDeleteOperation(ctx context.Context, aggregationURL string, restClient restclient.RestClientInterface, resourceName string) bool
+	BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body []byte) (bool, map[string]interface{})
+	BmcDeleteOperation(ctx context.Context, aggregationURL string, resourceName string) bool
 }
 
 type CommonUtils struct {
@@ -140,5 +139,4 @@ var TaskmonLogsTable = map[string]string{
 	"201:CreateEventSubscription": "EventSubscription %s created successfully",
 	"400:CreateEventSubscription": "Invalid request for creating %s eventSubscription",
 	"409:CreateEventSubscription": "Subscription already exists with destination %s",
-	"200:DeleteEventSubscription": "Eventsubscription %s deletion is successful",
 }
