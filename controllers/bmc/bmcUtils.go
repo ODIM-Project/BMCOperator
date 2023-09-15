@@ -62,24 +62,24 @@ type modifyPassword struct {
 }
 
 type BmcInterface interface {
-	addBmc(body []byte, namespaceName types.NamespacedName, sysID string) bool
+	AddBmc(body []byte, namespaceName types.NamespacedName, sysID string) bool
 	PrepareAddBmcPayload(connectionMeth string) ([]byte, error)
-	updateBmcLabels()
-	updateDriveDetails() map[string]infraiov1.ArrayControllers
+	UpdateBmcLabels()
+	UpdateDriveDetails() map[string]infraiov1.ArrayControllers
 	// GetSystemDetails() map[string]interface{}
 	GetManagerDetails() map[string]interface{}
-	unregisterBmc() bool
-	loggingBmcDeletionActivity(isDeleted error, objectName string)
-	removeBmcFinalizerAndDeleteDependencies()
-	getAllowableResetValues() []string
-	validateResetData(powerState string, allowableValues []string) bool
+	UnregisterBmc() bool
+	LoggingBmcDeletionActivity(isDeleted error, objectName string)
+	RemoveBmcFinalizerAndDeleteDependencies()
+	GetAllowableResetValues() []string
+	ValidateResetData(powerState string, allowableValues []string) bool
 	ResetSystem(isBiosUpdation bool, updateBmcDependents bool) bool
-	updateOdimWithNewPassword() (bool, error)
-	updateBmcWithNewPassword() (bool, error)
-	encryptPassword(publicKey *rsa.PublicKey)
+	UpdateOdimWithNewPassword() (bool, error)
+	UpdateBmcWithNewPassword() (bool, error)
+	EncryptPassword(publicKey *rsa.PublicKey)
 	GetConnectionMethod(odimObj *infraiov1.Odim) string
 	UpdateBmcObject(bmcObj *infraiov1.Bmc)
-	deleteBMCObject()
+	DeleteBMCObject()
 }
 
 type bmcUtils struct {

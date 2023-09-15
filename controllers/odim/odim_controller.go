@@ -93,7 +93,7 @@ func (r *OdimReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	isOdimMarkedToBeDeleted := odimObj.GetDeletionTimestamp() != nil
 	if isOdimMarkedToBeDeleted {
 		if controllerutil.ContainsFinalizer(odimObj, odimFinalizer) {
-			isEventSubscriptionRemoved := removeEventsSubscription(ctx, odimRestClient)
+			isEventSubscriptionRemoved := odimUtil.removeEventsSubscription()
 			if isEventSubscriptionRemoved {
 				controllerutil.RemoveFinalizer(odimObj, odimFinalizer)
 				err = r.Update(ctx, odimObj)
@@ -107,16 +107,6 @@ func (r *OdimReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 		return ctrl.Result{}, nil
 	}
-	connected := odimUtil.checkOdimConnection()
-	if connected {
-		l.LogWithFields(ctx).Info("Odim successfully registered!, updating connection methods")
-		odimUtil.updateConnectionMethodVariants()
-		l.LogWithFields(ctx).Info("Successfully added all connection methods!")
-	} else {
-		r.Delete(ctx, odimObj)
-		return ctrl.Result{}, nil
-	}
-
 	// Add finalizer for this CR
 	if !controllerutil.ContainsFinalizer(odimObj, odimFinalizer) {
 		controllerutil.AddFinalizer(odimObj, odimFinalizer)
@@ -126,11 +116,20 @@ func (r *OdimReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			return ctrl.Result{}, err
 		}
 	}
+	connected := odimUtil.checkOdimConnection()
+	if connected {
+		l.LogWithFields(ctx).Info("Odim successfully registered!, updating connection methods")
+		odimUtil.updateConnectionMethodVariants()
+		l.LogWithFields(ctx).Info("Successfully added all connection methods!")
+	} else {
+		return ctrl.Result{}, nil
+	}
+
 	commonRec.GetUpdatedOdimObject(ctx, req.NamespacedName, odimObj)
 	// starting event listener
 	go eventsClient.Start(r.Client, r.Scheme)
 	// Creating default event subscription so that odim will send the events to the server operator listener
-	err = CreateEventSubscription(ctx, odimRestClient, odimObj.Spec.EventListenerHost)
+	err = odimUtil.CreateEventSubscription(odimObj.Spec.EventListenerHost)
 	if err != nil {
 		l.LogWithFields(ctx).Error("error while creating the event subscription ", err.Error())
 		return ctrl.Result{}, nil
@@ -204,20 +203,20 @@ func getOdimUtils(ctx context.Context, restClient restclient.RestClientInterface
 		odimRestClient: restClient,
 		commonRec:      commonRec,
 		odimObj:        odimObj,
+		commonUtil:     common.GetCommonUtils(restClient),
 	}
 }
 
 // CreateEventSubscription creates event subscription for server operator event listener
-func CreateEventSubscription(ctx context.Context, restClient restclient.RestClientInterface, destination string) error {
+func (ou *odimUtils) CreateEventSubscription(destination string) error {
 	uri := "/redfish/v1/EventService/Subscriptions"
 	body := GetEventSubscriptionPayload(destination)
-	resp, err := restClient.Post(uri, "Creating default event subscription", body)
+	resp, err := ou.odimRestClient.Post(uri, "Creating default event subscription", body)
 	if err != nil {
 		return fmt.Errorf("error while adding default subscription for server operator: %s", err.Error())
 	}
 	if resp.StatusCode == http.StatusAccepted {
-		commonUtil := common.GetCommonUtils(restClient)
-		ok, taskResp := commonUtil.MoniteringTaskmon(resp.Header, ctx, common.EVENTSUBSCRIPTION, destination)
+		ok, taskResp := ou.commonUtil.MoniteringTaskmon(resp.Header, ou.ctx, common.EVENTSUBSCRIPTION, destination)
 		if !ok {
 			return fmt.Errorf("failed to create event subscription: task response %v", taskResp)
 		}
@@ -225,13 +224,13 @@ func CreateEventSubscription(ctx context.Context, restClient restclient.RestClie
 	return nil
 }
 
-func removeEventsSubscription(ctx context.Context, restClient restclient.RestClientInterface) bool {
+func (ou *odimUtils) removeEventsSubscription() bool {
 	subscriptionsIds := []string{}
 	subscriptionsCollectionUri := "/redfish/v1/EventService/Subscriptions"
 	subscriptionsUrl := "/redfish/v1/EventService/Subscriptions/%s"
-	resp, statusCode, err := restClient.Get(subscriptionsCollectionUri, "Getting all  event subscription collections")
+	resp, statusCode, err := ou.odimRestClient.Get(subscriptionsCollectionUri, "Getting all  event subscription collections")
 	if err != nil {
-		l.LogWithFields(ctx).Errorf("error while getting event subscription collections for bmc operator: %s", err.Error())
+		l.LogWithFields(ou.ctx).Errorf("error while getting event subscription collections for bmc operator: %s", err.Error())
 		return false
 	}
 	if statusCode == http.StatusOK {
@@ -239,7 +238,7 @@ func removeEventsSubscription(ctx context.Context, restClient restclient.RestCli
 			members := mem.(map[string]interface{})
 			member, err := url.Parse(members["@odata.id"].(string))
 			if err != nil {
-				l.LogWithFields(ctx).Errorf("error while parsing the url %v", err)
+				l.LogWithFields(ou.ctx).Errorf("error while parsing the url %v", err)
 				return false
 			}
 			subscriptionsIds = append(subscriptionsIds, path.Base(member.String()))
@@ -248,29 +247,25 @@ func removeEventsSubscription(ctx context.Context, restClient restclient.RestCli
 	// Checking for the operator subscription
 	for _, subs := range subscriptionsIds {
 		subUri := fmt.Sprintf(subscriptionsUrl, subs)
-		resp, statusCode, err := restClient.Get(subUri, "Creating default event subscription")
+		resp, statusCode, err := ou.odimRestClient.Get(subUri, "Creating default event subscription")
 		if err != nil {
-			l.LogWithFields(ctx).Errorf("error while getting subscription for bmc operator: %s", err.Error())
+			l.LogWithFields(ou.ctx).Errorf("error while getting subscription for bmc operator: %s", err.Error())
 			return false
 		}
 		if statusCode == http.StatusOK {
 			if resp["Name"] == "BmcOperatorSubscription" {
-				resp, err := restClient.Delete(subUri, "Deleting the operator events subscription")
+				resp, err := ou.odimRestClient.Delete(subUri, "Deleting the operator events subscription")
 				if err != nil {
-					l.LogWithFields(ctx).Errorf("error while deleting subscription for bmc operator: %s", err.Error())
+					l.LogWithFields(ou.ctx).Errorf("error while deleting subscription for bmc operator: %s", err.Error())
 					return false
 				}
-				if resp.StatusCode == http.StatusAccepted {
-					commonUtil := common.GetCommonUtils(restClient)
-					done, _ := commonUtil.MoniteringTaskmon(resp.Header, ctx, common.DELETEEVENTSUBSCRIPTION, "BmcOperatorSubscription")
-					if done {
-						l.LogWithFields(ctx).Infof("deleted events subscription with ID %s", subs)
-						return true
-					}
+				if resp.StatusCode == http.StatusOK {
+					l.LogWithFields(ou.ctx).Infof("deleted events subscription with ID %s", subs)
+					return true
 				}
 			}
 		}
 	}
-	l.LogWithFields(ctx).Error("Received unexpected status code while deleting the events subscription")
+	l.LogWithFields(ou.ctx).Error("Received unexpected status code while deleting the events subscription")
 	return false
 }

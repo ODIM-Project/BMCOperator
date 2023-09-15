@@ -20,6 +20,7 @@ import (
 
 	infraiov1 "github.com/ODIM-Project/BMCOperator/api/v1"
 	config "github.com/ODIM-Project/BMCOperator/controllers/config"
+	common "github.com/ODIM-Project/BMCOperator/controllers/common"
 	restclient "github.com/ODIM-Project/BMCOperator/controllers/restclient"
 	utils "github.com/ODIM-Project/BMCOperator/controllers/utils"
 )
@@ -35,6 +36,8 @@ type odimInterface interface {
 	updateConnectionMethodVariantsStatus(connMethVarInfo map[string]string)
 	checkOdimConnection() bool
 	updateConnectionMethodVariants()
+	removeEventsSubscription() bool
+	CreateEventSubscription(destination string) error
 }
 
 type odimUtils struct {
@@ -42,6 +45,7 @@ type odimUtils struct {
 	odimRestClient restclient.RestClientInterface
 	commonRec      utils.ReconcilerInterface
 	odimObj        *infraiov1.Odim
+	commonUtil common.CommonInterface
 }
 
 // EventSubscriptionPayload is the payload of event subscription for server operator event listener
@@ -70,9 +74,9 @@ func GetEventSubscriptionPayload(destination string) []byte {
 	payload := EventSubscriptionPayload{
 		Name:                 DefaultEventSubscriptionName,
 		Destination:          destination + "/OdimEvents",
-		EventTypes:           config.Data.EventSubscriptionEventTypes,
-		MessageIds:           config.Data.EventSubscriptionMessageIds,
-		ResourceTypes:        config.Data.EventSubscriptionResourceTypes,
+		EventTypes:           config.Data.OperatorEventSubscriptionEventTypes,
+		MessageIds:           config.Data.OperatorEventSubscriptionMeesageIds,
+		ResourceTypes:        config.Data.OperatorEventSubscriptionResourceTypes,
 		Context:              DefaultEventSubscriptionContext,
 		Protocol:             "Redfish",
 		SubscriptionType:     "RedfishEvent",

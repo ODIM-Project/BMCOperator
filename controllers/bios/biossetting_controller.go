@@ -273,19 +273,13 @@ func (bs *biosUtils) getBiosLinkAndBody(resp map[string]interface{}, biosProps m
 
 // updateBiosAttributesOnReset updates the bios attributes with latest bios values
 func (bs *biosUtils) UpdateBiosAttributesOnReset(biosBmcIP string, updatedBiosAttributes map[string]string) {
-	// biosObj := bs.commonRec.GetBiosObject(common.MetadataName, bmcName, namespace)
+	bs.biosObj.Status.BiosAttributes = updatedBiosAttributes
 	bs.biosObj.Spec.Bios = map[string]string{}
-	err := bs.commonRec.(*utils.CommonReconciler).Client.Update(bs.ctx, bs.biosObj)
+	err := bs.commonRec.GetCommonReconcilerClient().Update(bs.ctx, bs.biosObj)
 	if err != nil {
 		l.LogWithFields(bs.ctx).Errorf("Error: Updating Spec of Bios Setting of %s: %s", biosBmcIP, err.Error())
 	}
-
-	biosObj := bs.commonRec.GetBiosObject(bs.ctx, constants.MetadataName, bs.biosObj.ObjectMeta.Name, bs.namespace)
-	bs.biosObj = biosObj
-	bs.biosObj.Status = infraiov1.BiosSettingStatus{
-		BiosAttributes: updatedBiosAttributes,
-	}
-	err = bs.commonRec.(*utils.CommonReconciler).Client.Status().Update(bs.ctx, bs.biosObj)
+	err = bs.commonRec.GetCommonReconcilerClient().Update(bs.ctx, bs.biosObj)
 	if err != nil {
 		l.LogWithFields(bs.ctx).Errorf("Error: Updating Status of Bios Setting of %s: %s", biosBmcIP, err.Error())
 	}

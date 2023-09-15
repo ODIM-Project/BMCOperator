@@ -112,9 +112,9 @@ func (r *BmcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	isBmcMarkedToBeDeleted := bmcObj.GetDeletionTimestamp() != nil
 	if isBmcMarkedToBeDeleted {
 		if controllerutil.ContainsFinalizer(bmcObj, bmcFinalizer) {
-			isBmcDeleted := bmcUtil.unregisterBmc()
+			isBmcDeleted := bmcUtil.UnregisterBmc()
 			if isBmcDeleted {
-				bmcUtil.removeBmcFinalizerAndDeleteDependencies()
+				bmcUtil.RemoveBmcFinalizerAndDeleteDependencies()
 				err := r.Update(ctx, bmcObj)
 				if err != nil {
 					return ctrl.Result{}, err
@@ -144,7 +144,7 @@ func (r *BmcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			// update password change
 			if decryptedPass != bmcObj.Spec.Credentials.Password {
 				//update bmc with new pass
-				updatedInBmc, err = bmcUtil.updateBmcWithNewPassword()
+				updatedInBmc, err = bmcUtil.UpdateBmcWithNewPassword()
 				if err != nil || !updatedInBmc {
 					encryptedPassword := utils.EncryptWithPublicKey(ctx, decryptedPass, *utils.PublicKey)
 					if encryptedPassword != "" {
@@ -152,7 +152,7 @@ func (r *BmcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 					}
 				} else {
 					//update odim with new pass if its updated in bmc
-					updatedInOdim, err = bmcUtil.updateOdimWithNewPassword()
+					updatedInOdim, err = bmcUtil.UpdateOdimWithNewPassword()
 					if err != nil || !updatedInOdim {
 						//check this case
 						if err != nil {
@@ -170,13 +170,13 @@ func (r *BmcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 					//update annotations with old password and encrypt exisiting password
 					if updatedInBmc && updatedInOdim {
 						l.LogWithFields(ctx).Info(fmt.Sprintf("Updating old password and encrypting current password for %s BMC", bmcObj.Spec.BmcDetails.Address))
-						bmcUtil.encryptPassword(utils.PublicKey)
+						bmcUtil.EncryptPassword(utils.PublicKey)
 						l.LogWithFields(ctx).Info(fmt.Sprintf("Successfully completed updating password for %s BMC!", bmcObj.Spec.BmcDetails.Address))
 					}
 				}
 			} else {
 				l.LogWithFields(ctx).Info(fmt.Sprintf("Password set is the same as before for %s BMC", bmcObj.Spec.BmcDetails.Address))
-				bmcUtil.encryptPassword(utils.PublicKey)
+				bmcUtil.EncryptPassword(utils.PublicKey)
 			}
 		} else {
 			// retrive conn method for bmc
@@ -188,28 +188,28 @@ func (r *BmcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 					l.LogWithFields(ctx).Errorf("Error: Creating the request body for adding %s BMC: %s", bmcObj.Spec.BmcDetails.Address, err.Error())
 				}
 				// add bmc
-				added := bmcUtil.addBmc(body, req.NamespacedName, bmcObj.Labels["systemId"])
+				added := bmcUtil.AddBmc(body, req.NamespacedName, bmcObj.Labels["systemId"])
 				//update annotations with old password and encrypt exisiting password if bmc added
 				if added {
 					// check if Annotations is not equal to nil in case of reconciliation
 					if bmcObj.ObjectMeta.Annotations != nil {
 						bmcObj.ObjectMeta.Annotations["old_password"] = ""
 						l.LogWithFields(ctx).Info(fmt.Sprintf("Updating old password and encrypting Current password for %s BMC", bmcObj.Spec.BmcDetails.Address))
-						bmcUtil.encryptPassword(publicKey)
+						bmcUtil.EncryptPassword(publicKey)
 					}
 					// update labels
 					l.LogWithFields(ctx).Info("Updating labels..")
-					bmcUtil.updateBmcLabels()
+					bmcUtil.UpdateBmcLabels()
 					l.LogWithFields(ctx).Info("Successfully completed")
 				} else {
 					l.LogWithFields(ctx).Info(fmt.Sprintf("BMC %s not added, try again", bmcObj.Spec.BmcDetails.Address))
-					bmcUtil.deleteBMCObject()
+					bmcUtil.DeleteBMCObject()
 					return ctrl.Result{}, nil
 				}
 			} else {
 				l.LogWithFields(ctx).Info(fmt.Sprintf("Odim doesn't support the plugin required for this %s Bmc!", bmcObj.Spec.BmcDetails.Address))
 				updateBMCObject = false
-				bmcUtil.deleteBMCObject()
+				bmcUtil.DeleteBMCObject()
 			}
 		}
 	}
@@ -217,7 +217,7 @@ func (r *BmcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	if bmcObj.Spec.BmcDetails.PowerState != "" && bmcObj.Spec.BmcDetails.ResetType != "" {
 		updateBMCObject = true
 		var currentPowerState string
-		allowableVal := bmcUtil.getAllowableResetValues()
+		allowableVal := bmcUtil.GetAllowableResetValues()
 		if allowableVal == nil {
 			l.LogWithFields(ctx).Info(fmt.Sprintf("Allowable values not available for %s BMC", bmcObj.Spec.BmcDetails.Address))
 			return ctrl.Result{}, nil
@@ -227,7 +227,7 @@ func (r *BmcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			currentPowerState = val.(string)
 			l.LogWithFields(ctx).Info(fmt.Sprintf("Current power state for %s BMC: `%s`", bmcObj.Spec.BmcDetails.Address, currentPowerState))
 		}
-		isValid := bmcUtil.validateResetData(currentPowerState, allowableVal)
+		isValid := bmcUtil.ValidateResetData(currentPowerState, allowableVal)
 		if !isValid {
 			bmcObj.Spec.BmcDetails.PowerState = ""
 			bmcObj.Spec.BmcDetails.ResetType = ""
@@ -274,26 +274,26 @@ func (r *BmcReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 // --------Add BMC------
 // addBmc used to add BMC
-func (bu *bmcUtils) addBmc(body []byte, namespaceName types.NamespacedName, sysID string) bool {
+func (bu *bmcUtils) AddBmc(body []byte, namespaceName types.NamespacedName, sysID string) bool {
 	biosUtil := bios.GetBiosUtils(bu.ctx, nil, bu.commonRec, bu.bmcRestClient, bu.namespace) //getting biosUtil
 	bootUtil := boot.GetBootUtils(bu.ctx, nil, bu.commonRec, bu.bmcRestClient, bu.commonUtil, bu.namespace)
 	eventSubUtils := eventsubscription.GetEventSubscriptionUtils(bu.ctx, bu.bmcRestClient, bu.commonRec, nil, bu.namespace)
 	l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Adding %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
 	if sysID == "" {
-		done, taskResp := bu.commonUtil.BmcAddition(bu.ctx, bu.bmcObj, body, bu.bmcRestClient)
+		done, taskResp := bu.commonUtil.BmcAddition(bu.ctx, bu.bmcObj, body)
 		if done {
 			if taskResp != nil && taskResp["Name"].(string) == "Aggregation Source" {
-				return updateBmcDetails(taskResp["Id"].(string), bu, biosUtil, bootUtil, eventSubUtils)
+				return UpdateBmcDetails(taskResp["Id"].(string), bu, biosUtil, bootUtil, eventSubUtils)
 			}
 		}
 	} else {
-		return updateBmcDetails(sysID, bu, biosUtil, bootUtil, eventSubUtils)
+		return UpdateBmcDetails(sysID, bu, biosUtil, bootUtil, eventSubUtils)
 	}
 	return false
 }
 
 // updateBmcDetails is used to get bmc details and update in kubernetes object
-func updateBmcDetails(sysId string, bu *bmcUtils, biosUtil bios.BiosInterface, bootUtil boot.BootInterface, eventSubUtils eventsubscription.EventSubscriptionInterface) bool {
+func UpdateBmcDetails(sysId string, bu *bmcUtils, biosUtil bios.BiosInterface, bootUtil boot.BootInterface, eventSubUtils eventsubscription.EventSubscriptionInterface) bool {
 	bu.bmcObj.Status.BmcAddStatus = "yes"
 	bu.bmcObj.Status.BmcSystemID = sysId
 	l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Systems ID for %s Bmc is %s", bu.bmcObj.Spec.BmcDetails.Address, sysId))
@@ -363,7 +363,7 @@ func updateBmcDetails(sysId string, bu *bmcUtils, biosUtil bios.BiosInterface, b
 			bu.bmcObj.Status.FirmwareVersion = firmwareVersion
 		}
 	}
-	storageDetails := bu.updateDriveDetails()
+	storageDetails := bu.UpdateDriveDetails()
 	if len(storageDetails) != 0 {
 		bu.bmcObj.Status.StorageControllers = storageDetails
 	} else {
@@ -387,7 +387,7 @@ func (bu *bmcUtils) PrepareAddBmcPayload(connectionMeth string) ([]byte, error) 
 	return body, nil
 }
 
-func (bu *bmcUtils) updateBmcLabels() {
+func (bu *bmcUtils) UpdateBmcLabels() {
 	bu.bmcObj.ObjectMeta.Labels = map[string]string{}
 	bu.bmcObj.ObjectMeta.Labels["name"] = bu.bmcObj.Spec.BmcDetails.Address
 	bu.bmcObj.ObjectMeta.Labels["systemId"] = bu.bmcObj.Status.BmcSystemID
@@ -401,7 +401,7 @@ func (bu *bmcUtils) updateBmcLabels() {
 	bu.bmcObj.ObjectMeta.Labels["firmwareVersion"] = re.ReplaceAllString(bu.bmcObj.Status.FirmwareVersion, ".")
 }
 
-func (bu *bmcUtils) updateDriveDetails() map[string]infraiov1.ArrayControllers {
+func (bu *bmcUtils) UpdateDriveDetails() map[string]infraiov1.ArrayControllers {
 	storageControllers := map[string]infraiov1.ArrayControllers{}
 	drives := map[string]infraiov1.DriveDetails{}
 	var arrayController infraiov1.ArrayControllers
@@ -504,27 +504,15 @@ func (bu *bmcUtils) updateDriveDetails() map[string]infraiov1.ArrayControllers {
 
 // GetManagerDetails used to get manager response
 func (bu *bmcUtils) GetManagerDetails() map[string]interface{} {
-	systemUUID := strings.Split(bu.bmcObj.Status.BmcSystemID, ".")[0]
-	resp, sCode, err := bu.bmcRestClient.Get("/redfish/v1/Managers/", fmt.Sprintf("Fetching managers collection details"))
-	if err != nil {
-		l.LogWithFields(bu.ctx).Errorf("Failed to get managers collection details with error: %v", err)
+	var uri string
+	if strings.Contains(bu.bmcObj.Spec.BmcDetails.ConnMethVariant, "DELL") {
+		uri = "/redfish/v1/Managers/" + strings.Replace(bu.bmcObj.Status.BmcSystemID, "System", "iDRAC", -1)
+	} else {
+		uri = "/redfish/v1/Managers/" + bu.bmcObj.Status.BmcSystemID
 	}
+	resp, sCode, err := bu.bmcRestClient.Get(uri, fmt.Sprintf("Fetching manager details for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
 	if sCode == http.StatusOK {
-		members := resp["Members"].([]interface{})
-		if len(members) > 0 {
-			for _, member := range members {
-				managerURI := member.(map[string]interface{})["@odata.id"].(string)
-				uri := strings.Split(managerURI, "/")
-				systemID := uri[len(uri)-1]
-				managerSysUUID := strings.Split(systemID, ".")[0]
-				if systemUUID == managerSysUUID {
-					resp, sCode, err = bu.bmcRestClient.Get(managerURI, fmt.Sprintf("Fetching manager details for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
-					if sCode == http.StatusOK {
-						return resp
-					}
-				}
-			}
-		}
+		return resp
 	}
 	l.LogWithFields(bu.ctx).Error(fmt.Sprintf("Failed getting manager details for %s BMC: Got %d from odim: %s", bu.bmcObj.Spec.BmcDetails.Address, sCode, err.Error()))
 	return nil
@@ -532,10 +520,10 @@ func (bu *bmcUtils) GetManagerDetails() map[string]interface{} {
 
 // ---------Delete BMC--------------
 // unregisterBmc used to unregister BMC
-func (bu *bmcUtils) unregisterBmc() bool {
+func (bu *bmcUtils) UnregisterBmc() bool {
 	deleteURI := fmt.Sprintf("/redfish/v1/AggregationService/AggregationSources/%s", bu.bmcObj.Status.BmcSystemID)
 	l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Deleting %s BMC from odim", bu.bmcObj.Spec.BmcDetails.Address))
-	ok := bu.commonUtil.BmcDeleteOperation(bu.ctx, deleteURI, bu.bmcRestClient, bu.bmcObj.ObjectMeta.Name)
+	ok := bu.commonUtil.BmcDeleteOperation(bu.ctx, deleteURI, bu.bmcObj.ObjectMeta.Name)
 	if !ok {
 		l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Error in getting delete response for BMC %s", bu.bmcObj.Spec.BmcDetails.Address))
 		return false
@@ -544,7 +532,7 @@ func (bu *bmcUtils) unregisterBmc() bool {
 }
 
 // loggingBmcDeletionActivity will log deletion activity
-func (bu *bmcUtils) loggingBmcDeletionActivity(isDeleted error, objectName string) {
+func (bu *bmcUtils) LoggingBmcDeletionActivity(isDeleted error, objectName string) {
 	if isDeleted != nil {
 		l.LogWithFields(bu.ctx).Errorf("Error while deleting %s object for %s BMC!: %s", objectName, bu.bmcObj.Spec.BmcDetails.Address, isDeleted.Error())
 	} else {
@@ -552,18 +540,18 @@ func (bu *bmcUtils) loggingBmcDeletionActivity(isDeleted error, objectName strin
 	}
 }
 
-func (bu *bmcUtils) removeBmcFinalizerAndDeleteDependencies() {
+func (bu *bmcUtils) RemoveBmcFinalizerAndDeleteDependencies() {
 	controllerutil.RemoveFinalizer(bu.bmcObj, bmcFinalizer)
 	biosObj := bu.commonRec.GetBiosObject(bu.ctx, constants.MetadataName, bu.bmcObj.ObjectMeta.Name, bu.namespace)
 	bootObj := bu.commonRec.GetBootObject(bu.ctx, constants.MetadataName, bu.bmcObj.ObjectMeta.Name, bu.namespace)
 	volObj := bu.commonRec.GetVolumeObject(bu.ctx, bu.bmcObj.Spec.BmcDetails.Address, bu.namespace)
 	firmwareObj := bu.commonRec.GetFirmwareObject(bu.ctx, constants.MetadataName, bu.bmcObj.ObjectMeta.Name, bu.namespace)
 	isBiosDeleted := bu.commonRec.GetCommonReconcilerClient().Delete(bu.ctx, biosObj)
-	bu.loggingBmcDeletionActivity(isBiosDeleted, "BiosSetting")
+	bu.LoggingBmcDeletionActivity(isBiosDeleted, "BiosSetting")
 	isBootDeleted := bu.commonRec.GetCommonReconcilerClient().Delete(bu.ctx, bootObj)
-	bu.loggingBmcDeletionActivity(isBootDeleted, "BootOrderSetting")
+	bu.LoggingBmcDeletionActivity(isBootDeleted, "BootOrderSetting")
 	isFirmwareDeleted := bu.commonRec.GetCommonReconcilerClient().Delete(bu.ctx, firmwareObj)
-	bu.loggingBmcDeletionActivity(isFirmwareDeleted, "Firmware")
+	bu.LoggingBmcDeletionActivity(isFirmwareDeleted, "Firmware")
 	if volObj != nil {
 		controllerutil.RemoveFinalizer(volObj, volFinalizer)
 		err := bu.commonRec.GetCommonReconcilerClient().Update(bu.ctx, volObj)
@@ -571,11 +559,11 @@ func (bu *bmcUtils) removeBmcFinalizerAndDeleteDependencies() {
 			l.LogWithFields(bu.ctx).Errorf("Error while updating volume object for %s BMC!: %s", bu.bmcObj.Spec.BmcDetails.Address, err)
 		}
 		isVolumeDeleted := bu.commonRec.GetCommonReconcilerClient().Delete(bu.ctx, volObj)
-		bu.loggingBmcDeletionActivity(isVolumeDeleted, "Volume")
+		bu.LoggingBmcDeletionActivity(isVolumeDeleted, "Volume")
 	}
 }
 
-func (bu *bmcUtils) deleteBMCObject() {
+func (bu *bmcUtils) DeleteBMCObject() {
 	sysID := bu.bmcObj.Status.BmcSystemID
 	err := bu.commonRec.GetCommonReconcilerClient().Delete(context.Background(), bu.bmcObj)
 	if err != nil {
@@ -586,7 +574,7 @@ func (bu *bmcUtils) deleteBMCObject() {
 
 // ---------------Reset BMC-----------------
 // getAllowableResetValues used to get allowable reset values from map
-func (bu *bmcUtils) getAllowableResetValues() []string {
+func (bu *bmcUtils) GetAllowableResetValues() []string {
 	key := infraiov1.SystemDetail{
 		Vendor:  bu.bmcObj.Status.VendorName,
 		ModelID: bu.bmcObj.Status.ModelID,
@@ -599,7 +587,7 @@ func (bu *bmcUtils) getAllowableResetValues() []string {
 
 // validateResetData used to validate the input given by user for reset operation
 // validateResetData(currentPowerState, bmcObj.Spec.BmcDetails.PowerState, bmcObj.Spec.BmcDetails.ResetType, allowableVal,*bmcObj)
-func (bu *bmcUtils) validateResetData(powerState string, allowableValues []string) bool {
+func (bu *bmcUtils) ValidateResetData(powerState string, allowableValues []string) bool {
 	allowedVal := make(map[string]bool)
 	powerState, desiredPowerState := strings.ToUpper(powerState), strings.ToUpper(bu.bmcObj.Spec.BmcDetails.PowerState)
 	for _, av := range allowableValues {
@@ -711,7 +699,7 @@ func getUpdatedBiosAttributes(ctx context.Context, oldBiosAttributes map[string]
 
 // ----------Update New Password on BMC,ODIM----------------
 // updateOdimWithNewPassword will update ODIM with new working password of bmc
-func (bu *bmcUtils) updateOdimWithNewPassword() (bool, error) {
+func (bu *bmcUtils) UpdateOdimWithNewPassword() (bool, error) {
 	aggUri := fmt.Sprintf("/redfish/v1/AggregationService/AggregationSources/%s", bu.bmcObj.Status.BmcSystemID)
 	l.LogWithFields(bu.ctx).Info("Updating password on ODIM")
 	bdy := modifyPassword{Password: bu.bmcObj.Spec.Credentials.Password}
@@ -732,7 +720,7 @@ func (bu *bmcUtils) updateOdimWithNewPassword() (bool, error) {
 }
 
 // updateBmc will update the bmc with new user entered password
-func (bu *bmcUtils) updateBmcWithNewPassword() (bool, error) {
+func (bu *bmcUtils) UpdateBmcWithNewPassword() (bool, error) {
 	remoteAccUri := fmt.Sprintf("/redfish/v1/Managers/%s/RemoteAccountService/Accounts", bu.bmcObj.Status.BmcSystemID)
 	l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Updating password on %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
 	var changePassUri string
@@ -765,7 +753,7 @@ func (bu *bmcUtils) updateBmcWithNewPassword() (bool, error) {
 
 // -------------Utils-------------------
 // encryptPassword will encrypt the current password of the bmc
-func (bu *bmcUtils) encryptPassword(publicKey *rsa.PublicKey) {
+func (bu *bmcUtils) EncryptPassword(publicKey *rsa.PublicKey) {
 	encryptedPassword := utils.EncryptWithPublicKey(bu.ctx, bu.bmcObj.Spec.Credentials.Password, *utils.PublicKey)
 	if encryptedPassword != "" {
 		bu.bmcObj.Spec.Credentials.Password = encryptedPassword

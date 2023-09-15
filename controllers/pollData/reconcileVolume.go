@@ -181,6 +181,7 @@ func (pr PollingReconciler) getDifferenceInVolumesBetweenOdimAndOperator(volumeO
 func (pr PollingReconciler) getAllVolumeObjectIdsFromODIM(bmc *infraiov1.Bmc, ctx context.Context) map[string][]string {
 	var volumesFromODIM = map[string][]string{}
 	storageDetails, _, err := pr.pollRestClient.Get(fmt.Sprintf("/redfish/v1/Systems/%s/Storage/", bmc.Status.BmcSystemID), fmt.Sprintf("Fetching Storage details for %s BMC..", bmc.Spec.BmcDetails.Address))
+	l.LogWithFields(pr.ctx).Debugf("Response from GET on storage collection url:%v", storageDetails)
 	if err != nil {
 		l.LogWithFields(ctx).Error(err, "Error getting storage details")
 		return nil
@@ -194,6 +195,7 @@ func (pr PollingReconciler) getAllVolumeObjectIdsFromODIM(bmc *infraiov1.Bmc, ct
 			path := arrayControllerPath.(map[string]interface{})
 			arrayController := strings.Split(path["@odata.id"].(string), "/") //arrayController : [ redfish v1 Systems e19e1a0c-32a9-45e9-83d1-53824085df99.1 Storage ArrayControllers-0]
 			volumeResponse, _, err := pr.pollRestClient.Get(fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Volumes", bmc.Status.BmcSystemID, arrayController[len(arrayController)-1]), fmt.Sprintf("Fetching Volume details for %s BMC..", bmc.Spec.BmcDetails.Address))
+			l.LogWithFields(pr.ctx).Debugf("Response from GET on volume collection url:%v", volumeResponse)
 			if err != nil {
 				l.LogWithFields(ctx).Error(err, fmt.Sprintf("Error getting volume details for %s", arrayController[len(arrayController)-1]))
 			}
@@ -219,6 +221,7 @@ func (pr PollingReconciler) getVolumeDetailsAndCreateVolumeObject(bmc *infraiov1
 	for _, volId := range volumeIds {
 		volumeURL := fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Volumes/%s", bmc.Status.BmcSystemID, storageController, volId)
 		newVolumeDetails, _, err := pr.pollRestClient.Get(volumeURL, fmt.Sprintf("Fetching newly created Volume %s details", volId))
+		l.LogWithFields(pr.ctx).Debugf("Response from GET on %s:%v", volumeURL, newVolumeDetails)
 		if err != nil {
 			l.LogWithFields(pr.ctx).Error(err, fmt.Sprintf("Error getting new volume %s details", volId))
 		}
@@ -336,6 +339,7 @@ func (pr PollingReconciler) getVolumeObjectDetailsAndCreateVolumeInODIM(bmcObj *
 // getNewVolumeIDForObject will get the new VolumeID for the volume object whose Volume was deleted from ODIM, and had to be added back as part of Revert use case
 func (pr PollingReconciler) getNewVolumeIDForObject(bmcObj *infraiov1.Bmc, storageController string, volObj *infraiov1.Volume) (string, error) {
 	getAllVolumesResp, sCode, err := pr.pollRestClient.Get(fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Volumes", bmcObj.Status.BmcSystemID, storageController), "Fetching all volumes..")
+	l.LogWithFields(pr.ctx).Debugf("Response from GET on volume collection url:%v", getAllVolumesResp)
 	if err != nil {
 		l.LogWithFields(pr.ctx).Error("error while fetching all volumes:" + err.Error())
 		return "", err
@@ -347,6 +351,7 @@ func (pr PollingReconciler) getNewVolumeIDForObject(bmcObj *infraiov1.Bmc, stora
 	for _, vol := range volumesList {
 		volURL := vol.(map[string]interface{})["@odata.id"].(string)
 		getEachVolResp, sCode, err := pr.pollRestClient.Get(volURL, fmt.Sprintf("Fetching %s volume details..", volURL[len(volURL)-1:]))
+		l.LogWithFields(pr.ctx).Debugf("Response from GET on %s:%v", volURL, getEachVolResp)
 		if err != nil {
 			l.LogWithFields(pr.ctx).Error(fmt.Sprintf("error while fetching %s volume details:", volURL[len(volURL)-1:]) + err.Error())
 			return "", err
@@ -424,12 +429,14 @@ func (pr PollingReconciler) filterOutVolumesInProgress(volumeIds []string, bmcNa
 			}
 		}
 	}
+
 	return filteredVolumes
 }
 
 // getVolumeName will return the volume name as present in ODIM based on Volume ID
 func (pr PollingReconciler) getVolumeName(bmcSystemID, storageController, volID string) string {
 	volResp, sCode, err := pr.pollRestClient.Get(fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Volumes/%s", bmcSystemID, storageController, volID), "Getting volume details..")
+	l.LogWithFields(pr.ctx).Debugf("Response from GET on volume %s:%v", bmcSystemID, volResp)
 	if err != nil {
 		l.LogWithFields(pr.ctx).Error(fmt.Sprintf("error while getting %s volume details:", volID) + err.Error())
 		return ""

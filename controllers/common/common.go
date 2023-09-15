@@ -88,9 +88,9 @@ func GetCommonUtils(restClient restclient.RestClientInterface) CommonInterface {
 }
 
 // BmcAddition is used to add bmc in ODIM
-func (bu *CommonUtils) BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body []byte, restClient restclient.RestClientInterface) (bool, map[string]interface{}) {
+func (bu *CommonUtils) BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body []byte) (bool, map[string]interface{}) {
 	uri := "/redfish/v1/AggregationService/AggregationSources/"
-	resp, err := restClient.Post(uri, "Posting add bmc payload..", body)
+	resp, err := bu.restClient.Post(uri, "Posting add bmc payload..", body)
 	if err != nil {
 		l.LogWithFields(ctx).Info(fmt.Sprintf("Error adding %s BMC", bmcObject.Spec.BmcDetails.Address))
 		return false, nil
@@ -106,8 +106,8 @@ func (bu *CommonUtils) BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body 
 }
 
 // BmcDeleteOperation will delete the bmc from ODIM
-func (bu *CommonUtils) BmcDeleteOperation(ctx context.Context, aggregationURL string, restClient restclient.RestClientInterface, resourceName string) bool {
-	delResp, err := restClient.Delete(aggregationURL, "Deleting BMC..")
+func (bu *CommonUtils) BmcDeleteOperation(ctx context.Context, aggregationURL string, resourceName string) bool {
+	delResp, err := bu.restClient.Delete(aggregationURL, "Deleting BMC..")
 	if err != nil {
 		l.LogWithFields(ctx).Warnf("could not delete bmc, error occurred %v", err)
 		return false

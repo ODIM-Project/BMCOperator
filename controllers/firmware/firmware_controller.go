@@ -114,6 +114,7 @@ func (r *FirmwareReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		commonRec.GetUpdatedFirmwareObject(ctx, req.NamespacedName, firmObj) // getting updated firmware object after updating labels to avoid updating on old firmware object
 		firmUtil.UpdateFirmwareStatus("Success", firmVersion, firmObj.Spec.Image.ImageLocation)
 		bmcObj := commonRec.GetBmcObject(ctx, constants.MetadataName, firmObj.Name, req.Namespace)
+		time.Sleep(time.Duration(300) * time.Second)
 		newSchema := firmUtil.checkIfBiosSchemaRegistryChanged(bmcObj)
 		firmUtil.UpdateBmcObjectWithFirmwareVersionAndSchema(bmcObj, firmVersion, newSchema)
 		l.LogWithFields(ctx).Info("Firmware and Bmc object updation completed!")

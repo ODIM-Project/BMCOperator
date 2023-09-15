@@ -275,7 +275,7 @@ func (r *CommonReconciler) GetVolumeObjectByVolumeID(ctx context.Context, volume
 	}
 	err := r.Client.List(ctx, list, opts...)
 	if len(list.Items) == 0 {
-		l.LogWithFields(ctx).Error(fmt.Sprintf("Couldn't find any Volume object by volumeName %s:", volumeID), err.Error())
+		l.LogWithFields(ctx).Info(fmt.Sprintf("Couldn't find any Volume object by volumeName %s:", volumeID))
 		return nil
 	}
 	if err != nil {
@@ -301,7 +301,7 @@ func (r *CommonReconciler) GetAllVolumeObjectIds(ctx context.Context, bmc *infra
 	}
 	err := r.Client.List(ctx, list, opts...)
 	if len(list.Items) == 0 {
-		l.LogWithFields(ctx).Error(fmt.Sprintf("Couldn't find any Volume objects in %s namespace", ns))
+		l.LogWithFields(ctx).Info(fmt.Sprintf("Couldn't find any Volume objects in %s namespace", ns))
 		return map[string][]string{}
 	}
 	if err != nil {

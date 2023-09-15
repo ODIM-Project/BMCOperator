@@ -36,6 +36,7 @@ func (r PollingReconciler) AccommodateEventSubscriptionDetails(ctx context.Conte
 	mapOfEventSubscriptions := make(map[string]bool) //mapOfEventSubscriptions contains a eventsubscriptionIDs of the eventsubscriptions present in the operator
 
 	res, _, err := restClient.Get("/redfish/v1/EventService/Subscriptions", "Fetching all the event subscriptions present on ODIM")
+	l.LogWithFields(r.ctx).Debugf("Response from GET on /redfish/v1/EventService/Subscriptions:%v", res)
 	if err != nil {
 		l.LogWithFields(ctx).Errorf("Failed to get event subscriptions")
 	}
@@ -49,8 +50,8 @@ func (r PollingReconciler) AccommodateEventSubscriptionDetails(ctx context.Conte
 	if subscriptions, ok := res["Members"].([]interface{}); ok {
 		for _, subscription := range subscriptions {
 			reqURL := subscription.(map[string]interface{})["@odata.id"].(string)
-
 			subscriptionDetails, statusCode, err := restClient.Get(reqURL, fmt.Sprintf("Fetching %s eventsubscription details..", reqURL[len(reqURL)-1:]))
+			l.LogWithFields(r.ctx).Debugf("Response from GET on %s:%v", reqURL, subscriptionDetails)
 
 			if err != nil {
 				l.LogWithFields(ctx).Error(fmt.Sprintf("error while fetching %s eventsubscription details:", reqURL[len(reqURL)-1:]) + err.Error())
@@ -109,6 +110,7 @@ func (r PollingReconciler) RemoveSubscriptions(mapOfEventSubscriptions map[strin
 // RevertEventSubscriptionDetails will revert the event subscriptions on ODIM which does not exist in BMC operator
 func (r PollingReconciler) RevertEventSubscriptionDetails(ctx context.Context, restClient restclient.RestClientInterface, defaultEventsubscriptionDestination string) {
 	res, _, err := restClient.Get("/redfish/v1/EventService/Subscriptions", "Fetching all the event subscriptions present on ODIM")
+	l.LogWithFields(r.ctx).Debugf("Response from GET on /redfish/v1/EventService/Subscriptions:%v", res)
 	if err != nil {
 		l.LogWithFields(ctx).Errorf("Failed to get event subscriptions")
 	}
@@ -119,9 +121,8 @@ func (r PollingReconciler) RevertEventSubscriptionDetails(ctx context.Context, r
 	if subscriptions, ok := res["Members"].([]interface{}); ok {
 		for _, subscription := range subscriptions {
 			reqURL := subscription.(map[string]interface{})["@odata.id"].(string)
-
 			subscriptionDetails, statusCode, err := restClient.Get(reqURL, fmt.Sprintf("Fetching %s eventsubscription details..", reqURL[len(reqURL)-1:]))
-
+			l.LogWithFields(r.ctx).Debugf("Response from GET on %s:%v", reqURL, subscriptionDetails)
 			if err != nil {
 				l.LogWithFields(ctx).Error(fmt.Sprintf("error while fetching %s eventsubscription details:", reqURL[len(reqURL)-1:]) + err.Error())
 			} else if statusCode != http.StatusOK {
@@ -161,6 +162,7 @@ func (r PollingReconciler) AddEventSubscription(subscriptionID string) {
 			return
 		}
 		resp, err := r.pollRestClient.Post("/redfish/v1/EventService/Subscriptions", "Posting eventsubscription creation payload...", req)
+		l.LogWithFields(r.ctx).Debugf("Response of POST on /redfish/v1/EventService/Subscriptions:%v", resp)
 		if err != nil {
 			l.LogWithFields(r.ctx).Errorf("error while creating eventsubscription for object %s: %s", eventsubObj.ObjectMeta.Name, err.Error())
 			return
@@ -210,7 +212,7 @@ func (r PollingReconciler) checkAndUpdateEventSubscriptionObject(ctx context.Con
 	}
 	originResources, err := eventsubUtils.MapOriginResources(eventsubscriptionResp)
 	if err != nil {
-		return fmt.Errorf("Failed to update eventsubscription object: %s", err.Error())
+		return fmt.Errorf("failed to update eventsubscription object: %s", err.Error())
 	}
 	if len(originResources) > 0 {
 		eventsubscriptionStatus.OriginResources = originResources
@@ -242,6 +244,7 @@ func (r PollingReconciler) CreateEventsubscriptionObject(ctx context.Context, ev
 // DeleteEventsubscriptionFromODIM will delete the event subscription from ODIM
 func (r PollingReconciler) DeleteEventsubscriptionFromODIM(ctx context.Context, subscriptionID string, restClient restclient.RestClientInterface) bool {
 	deleteResp, err := restClient.Delete(fmt.Sprintf("/redfish/v1/EventService/Subscriptions/%s", subscriptionID), fmt.Sprintf("Deleting event subscription with ID %s", subscriptionID))
+	l.LogWithFields(r.ctx).Debugf("Response of DELETE on subcription %s:%v", subscriptionID, deleteResp)
 	if err != nil {
 		l.LogWithFields(ctx).Error(fmt.Sprintf("error while deleting event subscription with ID %s from ODIM", subscriptionID))
 	}
