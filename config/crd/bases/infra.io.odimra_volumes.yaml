@@ -52,7 +52,7 @@ spec:
                 type: string
               drives:
                 items:
-                  type: integer
+                  type: string
                 type: array
               storageControllerID:
                 type: string
@@ -77,7 +77,7 @@ spec:
                 type: string
               drives:
                 items:
-                  type: integer
+                  type: string
                 type: array
               storageControllerID:
                 type: string

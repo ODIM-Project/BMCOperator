@@ -50,7 +50,7 @@ type requestPayload struct {
 	RAIDType    string `json:"RAIDType"`
 	Links       link   `json:"Links"`
 	DisplayName string `json:"DisplayName"`
-	ApplyTime   string `json:"@Redfish.OperationApplyTime"`
+	ApplyTime   string `json:"@Redfish.OperationApplyTime,omitempty"`
 }
 
 type link struct {
