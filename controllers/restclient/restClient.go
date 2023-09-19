@@ -40,6 +40,7 @@ var (
 )
 
 // -------------------------------NEW CLIENT CALLS---------------------------------
+
 // NewRestClient creates rest client for odim
 func NewRestClient(ctx context.Context, odimObj *infraiov1.Odim, commonRec *utils.CommonReconciler, rootdir string) (RestClientInterface, error) {
 	//getting secrets
@@ -101,6 +102,7 @@ func getNewRestClient(ctx context.Context, username, password, authType, host, p
 	}, nil
 }
 
+// NewHeaderAuth returns requestInterface struct
 func NewHeaderAuth(headers map[string]string, authType string) requestInterface {
 	return &requestDetails{
 		Headers:  headers,
@@ -109,6 +111,7 @@ func NewHeaderAuth(headers map[string]string, authType string) requestInterface 
 }
 
 // -----------------------------REST CALLS----------------------------------
+
 // Post rest call
 func (rc *RestClient) Post(uri, reason string, body interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("https://%s:%s%s", rc.host, rc.port, uri)

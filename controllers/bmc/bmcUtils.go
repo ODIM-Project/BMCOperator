@@ -61,6 +61,7 @@ type modifyPassword struct {
 	Password string
 }
 
+// BmcInterface defines all the bmc operations
 type BmcInterface interface {
 	AddBmc(body []byte, namespaceName types.NamespacedName, sysID string) bool
 	PrepareAddBmcPayload(connectionMeth string) ([]byte, error)
@@ -93,7 +94,8 @@ type bmcUtils struct {
 }
 
 // ----------- Get Keys for BMC encryption--------------
-// getPemKeys will read the pem files and parse the private and public key
+
+// GetPemKeys will read the pem files and parse the private and public key
 func GetPemKeys(ctx context.Context, pubKey, privKey string) (*rsa.PrivateKey, *rsa.PublicKey) {
 	privateKey, err := utils.ParseRsaPrivateKeyFromPemStr(privKey)
 	if err != nil {
@@ -108,7 +110,7 @@ func GetPemKeys(ctx context.Context, pubKey, privKey string) (*rsa.PrivateKey, *
 	return privateKey, publicKey
 }
 
-// getKeysSecret retreives the keys from secret
+// GetEncryptedPemKeysFromSecret retreives the keys from secret
 func GetEncryptedPemKeysFromSecret(ctx context.Context, secret *corev1.Secret, secretName, namespace string, r client.Client) (string, string) {
 	ns := types.NamespacedName{Namespace: namespace, Name: secretName}
 	err := r.Get(context.TODO(), ns, secret)

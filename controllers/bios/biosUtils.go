@@ -23,6 +23,7 @@ import (
 	utils "github.com/ODIM-Project/BMCOperator/controllers/utils"
 )
 
+// BiosInterface holds all the methods for bios operations
 type BiosInterface interface {
 	ValidateBiosAttributes(biosID string) (bool, map[string]interface{})
 	getBiosLinkAndBody(resp map[string]interface{}, biosProps map[string]interface{}, biosBmcIP string) (string, []byte)
@@ -31,6 +32,7 @@ type BiosInterface interface {
 	GetBiosAttributeID(biosVersion string, bmcObj *infraiov1.Bmc) (string, map[string]interface{})
 }
 
+// biosUtils is bios utility struct
 type biosUtils struct {
 	ctx            context.Context
 	biosObj        *infraiov1.BiosSetting

@@ -32,7 +32,7 @@ import (
 // Created common folder to avoid import cycle issue
 // Functions of bmc that are used in other folders are places here for access
 
-// GetSystemDetails used to get system response
+// GetBmcSystemDetails used to get system response
 func (bu *CommonUtils) GetBmcSystemDetails(ctx context.Context, bmcObj *infraiov1.Bmc) map[string]interface{} {
 	uri := "/redfish/v1/Systems/" + bmcObj.Status.BmcSystemID
 	resp, sCode, err := bu.restClient.Get(uri, fmt.Sprintf("Fetching system details for %s BMC", bmcObj.Spec.BmcDetails.Address))
@@ -47,7 +47,8 @@ func (bu *CommonUtils) GetBmcSystemDetails(ctx context.Context, bmcObj *infraiov
 	return nil
 }
 
-func (bu *CommonUtils) MoniteringTaskmon(headerInfo http.Header, ctx context.Context, operation, resourceName string) (bool, map[string]interface{}) {
+// MoniteringTaskmon moniters the taskmon 
+func (bu *CommonUtils) MoniteringTaskmon(ctx context.Context, headerInfo http.Header, operation, resourceName string) (bool, map[string]interface{}) {
 	retries := 0
 	for retries < constants.RetryCount {
 		retries = retries + 1
@@ -83,6 +84,7 @@ func (bu *CommonUtils) MoniteringTaskmon(headerInfo http.Header, ctx context.Con
 	return false, nil
 }
 
+// GetCommonUtils returns commonUtil
 func GetCommonUtils(restClient restclient.RestClientInterface) CommonInterface {
 	return &CommonUtils{restClient: restClient}
 }
@@ -100,7 +102,7 @@ func (bu *CommonUtils) BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body 
 		return false, nil
 	}
 	if resp.StatusCode == http.StatusAccepted {
-		return bu.MoniteringTaskmon(resp.Header, ctx, ADDBMC, bmcObject.ObjectMeta.Name)
+		return bu.MoniteringTaskmon(ctx, resp.Header, ADDBMC, bmcObject.ObjectMeta.Name)
 	}
 	return false, nil
 }
@@ -113,7 +115,7 @@ func (bu *CommonUtils) BmcDeleteOperation(ctx context.Context, aggregationURL st
 		return false
 	}
 	if err == nil && delResp.StatusCode == http.StatusAccepted {
-		done, _ := bu.MoniteringTaskmon(delResp.Header, ctx, DELETEBMC, resourceName)
+		done, _ := bu.MoniteringTaskmon(ctx, delResp.Header, DELETEBMC, resourceName)
 		if done {
 			return true
 		}
@@ -121,9 +123,10 @@ func (bu *CommonUtils) BmcDeleteOperation(ctx context.Context, aggregationURL st
 	return false
 }
 
+// BiosAttributeUpdation updates the bios attributes
 func BiosAttributeUpdation(ctx context.Context, body map[string]interface{}, systemID string, client restclient.RestClientInterface) bool {
-	bios_settings := map[string]map[string]interface{}{"Attributes": body}
-	biosBody, err := json.Marshal(bios_settings)
+	biosSettings := map[string]map[string]interface{}{"Attributes": body}
+	biosBody, err := json.Marshal(biosSettings)
 	if err != nil {
 		l.LogWithFields(ctx).Errorf("Failed to marshal Bios Payload: %s", err.Error())
 		return false

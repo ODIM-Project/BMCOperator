@@ -63,8 +63,8 @@ var podName = os.Getenv("POD_NAME")
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *FirmwareReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	//commonReconciler object creation
-	transactionId := uuid.New()
-	ctx = l.CreateContextForLogging(ctx, transactionId.String(), constants.BmcOperator, constants.ODIMObjectOperationActionID, constants.ODIMObjectOperationActionName, podName)
+	transactionID := uuid.New()
+	ctx = l.CreateContextForLogging(ctx, transactionID.String(), constants.BmcOperator, constants.ODIMObjectOperationActionID, constants.ODIMObjectOperationActionName, podName)
 	commonRec := utils.GetCommonReconciler(r.Client, r.Scheme)
 	firmObj := &infraiov1.Firmware{}
 	// Fetch the Odim object
@@ -167,7 +167,7 @@ func (fu *firmwareUtils) CreateFirmwareInSystem(firmwarePayload []byte) (bool, b
 		return false, false, err
 	}
 	if firmwareResp.StatusCode == http.StatusAccepted {
-		done, _ := fu.commonUtil.MoniteringTaskmon(firmwareResp.Header, fu.ctx, common.FIRMWARE, fu.firmObj.ObjectMeta.Name)
+		done, _ := fu.commonUtil.MoniteringTaskmon(fu.ctx, firmwareResp.Header, common.FIRMWARE, fu.firmObj.ObjectMeta.Name)
 		if done {
 			time.Sleep(time.Duration(40) * time.Second)
 			bmcObj := fu.commonRec.GetBmcObject(fu.ctx, constants.MetadataName, fu.firmObj.Name, fu.firmObj.Namespace)
@@ -257,9 +257,8 @@ func (fu *firmwareUtils) GetFirmwareVersion() string {
 	}
 	if _, ok := managerResp["FirmwareVersion"].(string); ok {
 		return managerResp["FirmwareVersion"].(string)
-	} else {
-		return ""
 	}
+	return ""
 }
 
 // getFirmwareBody prepares the payload for firmware operation
@@ -317,6 +316,7 @@ func (fu *firmwareUtils) GetFirmwareInventoryDetails(systemID string) []string {
 	return inventoryList
 }
 
+// GetFirmwareUtils returns firmwareUtil
 func GetFirmwareUtils(ctx context.Context, firmObj *infraiov1.Firmware, commonRec utils.ReconcilerInterface, firmRestClient restclient.RestClientInterface, ns string) firmwareInterface {
 	return &firmwareUtils{
 		ctx:            ctx,

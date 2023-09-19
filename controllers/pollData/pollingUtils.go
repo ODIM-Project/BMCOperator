@@ -78,6 +78,7 @@ func (r *PollingReconciler) getEncryptedPemKeysFromSecret(ctx context.Context, s
 	return publicKey, privateKey
 }
 
+// GetPollingReconciler returns a polling reconciler object
 func GetPollingReconciler(ctx context.Context, client client.Client, Scheme *runtime.Scheme) (*PollingReconciler, error) {
 	r := &PollingReconciler{Client: client, Scheme: Scheme}
 

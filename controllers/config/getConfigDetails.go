@@ -59,7 +59,7 @@ type ConfigModel struct {
 }
 
 var (
-	// TickerTime: time to be set on hourly basis
+	// TickerTime : time to be set on hourly basis
 	TickerTime int
 	// Ticker holds a channel that delivers “ticks” of a clock at intervals
 	Ticker *time.Ticker

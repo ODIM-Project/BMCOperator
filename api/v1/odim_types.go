@@ -33,6 +33,7 @@ type OdimStatus struct {
 	ConnMethVariants map[string]string `json:"connectionMethodVariants,omitempty"`
 }
 
+// Odim ...
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // Odim is the Schema for the odims API
@@ -46,6 +47,7 @@ type Odim struct {
 	Status            OdimStatus `json:"status,omitempty"`
 }
 
+// OdimList ...
 // +kubebuilder:object:root=true
 // OdimList contains a list of Odim
 type OdimList struct {

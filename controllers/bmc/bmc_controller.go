@@ -72,8 +72,8 @@ var podName = os.Getenv("POD_NAME")
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *BmcReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	transactionId := uuid.New()
-	ctx = l.CreateContextForLogging(ctx, transactionId.String(), constants.BmcOperator, constants.BMCSettingActionID, constants.BMCSettingActionName, podName)
+	transactionID := uuid.New()
+	ctx = l.CreateContextForLogging(ctx, transactionID.String(), constants.BmcOperator, constants.BMCSettingActionID, constants.BMCSettingActionName, podName)
 	var updateBMCObject bool
 	commonRec := utils.GetCommonReconciler(r.Client, r.Scheme)
 	odimObject := commonRec.GetOdimObject(ctx, constants.MetadataName, "odim", req.Namespace) //field name has to be taken from odim object
@@ -292,11 +292,11 @@ func (bu *bmcUtils) AddBmc(body []byte, namespaceName types.NamespacedName, sysI
 	return false
 }
 
-// updateBmcDetails is used to get bmc details and update in kubernetes object
-func UpdateBmcDetails(sysId string, bu *bmcUtils, biosUtil bios.BiosInterface, bootUtil boot.BootInterface, eventSubUtils eventsubscription.EventSubscriptionInterface) bool {
+// UpdateBmcDetails is used to get bmc details and update in kubernetes object
+func UpdateBmcDetails(sysID string, bu *bmcUtils, biosUtil bios.BiosInterface, bootUtil boot.BootInterface, eventSubUtils eventsubscription.EventSubscriptionInterface) bool {
 	bu.bmcObj.Status.BmcAddStatus = "yes"
-	bu.bmcObj.Status.BmcSystemID = sysId
-	l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Systems ID for %s Bmc is %s", bu.bmcObj.Spec.BmcDetails.Address, sysId))
+	bu.bmcObj.Status.BmcSystemID = sysID
+	l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Systems ID for %s Bmc is %s", bu.bmcObj.Spec.BmcDetails.Address, sysID))
 	systemDetails := bu.commonUtil.GetBmcSystemDetails(bu.ctx, bu.bmcObj)
 	mgrDetails := bu.GetManagerDetails()
 	if systemDetails != nil {
@@ -307,7 +307,7 @@ func UpdateBmcDetails(sysId string, bu *bmcUtils, biosUtil bios.BiosInterface, b
 		}
 
 		bu.bmcObj.Status.BmcAddStatus = "yes"
-		bu.bmcObj.Status.BmcSystemID = sysId
+		bu.bmcObj.Status.BmcSystemID = sysID
 		if serialNumber, ok := systemDetails["SerialNumber"].(string); ok {
 			bu.bmcObj.Status.SerialNumber = serialNumber
 		}
@@ -370,7 +370,7 @@ func UpdateBmcDetails(sysId string, bu *bmcUtils, biosUtil bios.BiosInterface, b
 		l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Could not successfully get list of drives for %s bmc", bu.bmcObj.Spec.BmcDetails.Address))
 	}
 	bu.commonRec.UpdateBmcStatus(bu.ctx, bu.bmcObj)
-	common.MapOfBmc["/redfish/v1/Systems/"+sysId] = common.BmcState{IsAdded: false, IsDeleted: false, IsObjCreated: true}
+	common.MapOfBmc["/redfish/v1/Systems/"+sysID] = common.BmcState{IsAdded: false, IsDeleted: false, IsObjCreated: true}
 	return true
 }
 
@@ -414,89 +414,88 @@ func (bu *bmcUtils) UpdateDriveDetails() map[string]infraiov1.ArrayControllers {
 	if storageDetails["Members"] == nil {
 		l.LogWithFields(bu.ctx).Info("No storage controllers present..")
 		return storageControllers
-	} else {
-		arrContrDetails := storageDetails["Members"].([]interface{})
-		for _, ac := range arrContrDetails {
-			raidLevels = []string{}
-			arrContlink := ac.(map[string]interface{})["@odata.id"].(string)
-			arrContDriveLinks, _, err := bu.bmcRestClient.Get(arrContlink, fmt.Sprintf("Fetching array controller details for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
-			if err != nil {
-				l.LogWithFields(bu.ctx).Error(err, "Error getting array controllers")
-				return storageControllers
-			}
-			if _, ok := arrContDriveLinks["Id"].(string); ok {
-				arrContID := arrContDriveLinks["Id"].(string)
-				if len(arrContDriveLinks["Drives"].([]interface{})) == 0 {
-					l.LogWithFields(bu.ctx).Info(fmt.Sprintf("No drives present for %s", arrContID))
-					arrayController.Drives = nil
-				} else {
-					drivesMap := arrContDriveLinks["Drives"].([]interface{})
-					for _, driveLink := range drivesMap {
-						drive := driveLink.(map[string]interface{})
-						volumes := []int{}
-						driveDetails, _, err := bu.bmcRestClient.Get(drive["@odata.id"].(string), fmt.Sprintf("Fetching drive details for %s BMC..", bu.bmcObj.Spec.BmcDetails.Address))
-						if err != nil {
-							l.LogWithFields(bu.ctx).Error(err, "Error getting drive details..")
-							return storageControllers
-						}
-						driveID := driveDetails["Id"].(string)
-						capacityBytes := driveDetails["CapacityBytes"].(float64)
-						if len(driveDetails["Links"].(map[string]interface{})) == 0 {
-							l.LogWithFields(bu.ctx).Info(fmt.Sprintf("No volumes are used for %s drive", driveID))
-						} else {
-							volumeLinks := driveDetails["Links"].(map[string]interface{})["Volumes"].([]interface{})
-							for _, vl := range volumeLinks {
-								volLink := vl.(map[string]interface{})["@odata.id"].(string)
-								volID, _ := strconv.Atoi(volLink[len(volLink)-1:])
-								volumes = append(volumes, volID)
-							}
-						}
-						driveDet := infraiov1.DriveDetails{CapacityBytes: fmt.Sprintf("%f", capacityBytes), UsedInVolumes: volumes}
-						drives[driveID] = driveDet
-					}
-					arrayController.Drives = drives
-				}
-				if len(arrContDriveLinks["Volumes"].(map[string]interface{})) == 0 {
-					l.LogWithFields(bu.ctx).Info(fmt.Sprintf("No volumes are created for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
-				} else {
-					volumeLink := arrContDriveLinks["Volumes"].(map[string]interface{})["@odata.id"].(string)
-					volumeDetails, sCode, err := bu.bmcRestClient.Get(volumeLink, fmt.Sprintf("Fetching volume details for %s BMC..", bu.bmcObj.Spec.BmcDetails.Address))
+	}
+	arrContrDetails := storageDetails["Members"].([]interface{})
+	for _, ac := range arrContrDetails {
+		raidLevels = []string{}
+		arrContlink := ac.(map[string]interface{})["@odata.id"].(string)
+		arrContDriveLinks, _, err := bu.bmcRestClient.Get(arrContlink, fmt.Sprintf("Fetching array controller details for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
+		if err != nil {
+			l.LogWithFields(bu.ctx).Error(err, "Error getting array controllers")
+			return storageControllers
+		}
+		if _, ok := arrContDriveLinks["Id"].(string); ok {
+			arrContID := arrContDriveLinks["Id"].(string)
+			if len(arrContDriveLinks["Drives"].([]interface{})) == 0 {
+				l.LogWithFields(bu.ctx).Info(fmt.Sprintf("No drives present for %s", arrContID))
+				arrayController.Drives = nil
+			} else {
+				drivesMap := arrContDriveLinks["Drives"].([]interface{})
+				for _, driveLink := range drivesMap {
+					drive := driveLink.(map[string]interface{})
+					volumes := []int{}
+					driveDetails, _, err := bu.bmcRestClient.Get(drive["@odata.id"].(string), fmt.Sprintf("Fetching drive details for %s BMC..", bu.bmcObj.Spec.BmcDetails.Address))
 					if err != nil {
-						l.LogWithFields(bu.ctx).Error(err, "Error getting volume details..")
+						l.LogWithFields(bu.ctx).Error(err, "Error getting drive details..")
 						return storageControllers
-					} else if sCode == http.StatusOK {
-						var capabilityDetails []interface{}
-						if collectionCap, ok := volumeDetails["@Redfish.CollectionCapabilities"]; ok {
-							capabilityDetails = collectionCap.(map[string]interface{})["Capabilities"].([]interface{})
+					}
+					driveID := driveDetails["Id"].(string)
+					capacityBytes := driveDetails["CapacityBytes"].(float64)
+					if len(driveDetails["Links"].(map[string]interface{})) == 0 {
+						l.LogWithFields(bu.ctx).Info(fmt.Sprintf("No volumes are used for %s drive", driveID))
+					} else {
+						volumeLinks := driveDetails["Links"].(map[string]interface{})["Volumes"].([]interface{})
+						for _, vl := range volumeLinks {
+							volLink := vl.(map[string]interface{})["@odata.id"].(string)
+							volID, _ := strconv.Atoi(volLink[len(volLink)-1:])
+							volumes = append(volumes, volID)
 						}
-						var capLink string
-						for _, capObj := range capabilityDetails {
-							capLink = capObj.(map[string]interface{})["CapabilitiesObject"].(map[string]interface{})["@odata.id"].(string)
-							break
-						}
-						if capLink != "" {
-							capDet, sCode, err := bu.bmcRestClient.Get(capLink, fmt.Sprintf("Fetching capability details for %s BMC..", bu.bmcObj.Spec.BmcDetails.Address))
-							if err != nil {
-								l.LogWithFields(bu.ctx).Error(err, "Error getting capability details..")
-								return storageControllers
-							} else if sCode == http.StatusOK {
-								rl := capDet["RAIDType@Redfish.AllowableValues"].([]interface{})
-								for _, raidType := range rl {
-									raidLevels = append(raidLevels, raidType.(string))
-								}
-							} else {
-								l.LogWithFields(bu.ctx).Info("Unable to get capability details, Try again..")
+					}
+					driveDet := infraiov1.DriveDetails{CapacityBytes: fmt.Sprintf("%f", capacityBytes), UsedInVolumes: volumes}
+					drives[driveID] = driveDet
+				}
+				arrayController.Drives = drives
+			}
+			if len(arrContDriveLinks["Volumes"].(map[string]interface{})) == 0 {
+				l.LogWithFields(bu.ctx).Info(fmt.Sprintf("No volumes are created for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
+			} else {
+				volumeLink := arrContDriveLinks["Volumes"].(map[string]interface{})["@odata.id"].(string)
+				volumeDetails, sCode, err := bu.bmcRestClient.Get(volumeLink, fmt.Sprintf("Fetching volume details for %s BMC..", bu.bmcObj.Spec.BmcDetails.Address))
+				if err != nil {
+					l.LogWithFields(bu.ctx).Error(err, "Error getting volume details..")
+					return storageControllers
+				} else if sCode == http.StatusOK {
+					var capabilityDetails []interface{}
+					if collectionCap, ok := volumeDetails["@Redfish.CollectionCapabilities"]; ok {
+						capabilityDetails = collectionCap.(map[string]interface{})["Capabilities"].([]interface{})
+					}
+					var capLink string
+					for _, capObj := range capabilityDetails {
+						capLink = capObj.(map[string]interface{})["CapabilitiesObject"].(map[string]interface{})["@odata.id"].(string)
+						break
+					}
+					if capLink != "" {
+						capDet, sCode, err := bu.bmcRestClient.Get(capLink, fmt.Sprintf("Fetching capability details for %s BMC..", bu.bmcObj.Spec.BmcDetails.Address))
+						if err != nil {
+							l.LogWithFields(bu.ctx).Error(err, "Error getting capability details..")
+							return storageControllers
+						} else if sCode == http.StatusOK {
+							rl := capDet["RAIDType@Redfish.AllowableValues"].([]interface{})
+							for _, raidType := range rl {
+								raidLevels = append(raidLevels, raidType.(string))
 							}
 						} else {
-							l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Capability Object not found for %s volume", arrContID))
+							l.LogWithFields(bu.ctx).Info("Unable to get capability details, Try again..")
 						}
 					} else {
-						l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Unable to get volume details for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
+						l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Capability Object not found for %s volume", arrContID))
 					}
+				} else {
+					l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Unable to get volume details for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
 				}
-				arrayController.SupportedRAIDLevel = raidLevels
-				storageControllers[arrContID] = arrayController
 			}
+			arrayController.SupportedRAIDLevel = raidLevels
+			storageControllers[arrContID] = arrayController
 		}
 	}
 	return storageControllers
@@ -651,7 +650,7 @@ func (bu *bmcUtils) ResetSystem(isBiosUpdation bool, updateBmcDependents bool) b
 		l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Password is not authorised for %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
 		return false
 	}
-	done, _ := bu.commonUtil.MoniteringTaskmon(response.Header, bu.ctx, common.RESETBMC, bu.bmcObj.ObjectMeta.Name)
+	done, _ := bu.commonUtil.MoniteringTaskmon(bu.ctx, response.Header, common.RESETBMC, bu.bmcObj.ObjectMeta.Name)
 	if done {
 		if updateBmcDependents { // this is introduced to skip updating of bmc dependents when revert of volume deleted scenario takes place.
 			biosObj := bu.commonRec.GetBiosObject(bu.ctx, constants.MetadataName, bu.bmcObj.ObjectMeta.Name, bu.namespace)
@@ -700,7 +699,7 @@ func getUpdatedBiosAttributes(ctx context.Context, oldBiosAttributes map[string]
 // ----------Update New Password on BMC,ODIM----------------
 // updateOdimWithNewPassword will update ODIM with new working password of bmc
 func (bu *bmcUtils) UpdateOdimWithNewPassword() (bool, error) {
-	aggUri := fmt.Sprintf("/redfish/v1/AggregationService/AggregationSources/%s", bu.bmcObj.Status.BmcSystemID)
+	aggURI := fmt.Sprintf("/redfish/v1/AggregationService/AggregationSources/%s", bu.bmcObj.Status.BmcSystemID)
 	l.LogWithFields(bu.ctx).Info("Updating password on ODIM")
 	bdy := modifyPassword{Password: bu.bmcObj.Spec.Credentials.Password}
 	body, err := json.Marshal(bdy)
@@ -708,7 +707,7 @@ func (bu *bmcUtils) UpdateOdimWithNewPassword() (bool, error) {
 		l.LogWithFields(bu.ctx).Error("Error marshaling request payload to ODIM" + err.Error())
 		return false, err
 	}
-	patchResp, err := bu.bmcRestClient.Patch(aggUri, fmt.Sprintf("Patching ODIM with new password for %s BMC..", bu.bmcObj.Spec.BmcDetails.Address), body)
+	patchResp, err := bu.bmcRestClient.Patch(aggURI, fmt.Sprintf("Patching ODIM with new password for %s BMC..", bu.bmcObj.Spec.BmcDetails.Address), body)
 	if err == nil && patchResp.StatusCode == http.StatusOK {
 		return true, nil
 	}
@@ -721,16 +720,16 @@ func (bu *bmcUtils) UpdateOdimWithNewPassword() (bool, error) {
 
 // updateBmc will update the bmc with new user entered password
 func (bu *bmcUtils) UpdateBmcWithNewPassword() (bool, error) {
-	remoteAccUri := fmt.Sprintf("/redfish/v1/Managers/%s/RemoteAccountService/Accounts", bu.bmcObj.Status.BmcSystemID)
+	remoteAccURI := fmt.Sprintf("/redfish/v1/Managers/%s/RemoteAccountService/Accounts", bu.bmcObj.Status.BmcSystemID)
 	l.LogWithFields(bu.ctx).Info(fmt.Sprintf("Updating password on %s BMC", bu.bmcObj.Spec.BmcDetails.Address))
-	var changePassUri string
-	getResp, _, _ := bu.bmcRestClient.Get(remoteAccUri, "Fetching remote account members..")
+	var changePassURI string
+	getResp, _, _ := bu.bmcRestClient.Get(remoteAccURI, "Fetching remote account members..")
 	accounts := getResp["Members"].([]interface{})
 	for _, acc := range accounts {
-		accUri := acc.(map[string]interface{})["@odata.id"].(string)
-		accGet, _, _ := bu.bmcRestClient.Get(accUri, "Fetching remote account details..")
+		accURI := acc.(map[string]interface{})["@odata.id"].(string)
+		accGet, _, _ := bu.bmcRestClient.Get(accURI, "Fetching remote account details..")
 		if accGet["UserName"].(string) == bu.bmcObj.Spec.Credentials.Username {
-			changePassUri = accUri
+			changePassURI = accURI
 			break
 		}
 	}
@@ -740,11 +739,11 @@ func (bu *bmcUtils) UpdateBmcWithNewPassword() (bool, error) {
 		l.LogWithFields(bu.ctx).Error("Error marshaling request payload to BMC: " + err.Error())
 		return false, err
 	}
-	patchResp, err := bu.bmcRestClient.Patch(changePassUri, fmt.Sprintf("Patching new password on %s BMC", bu.bmcObj.Spec.BmcDetails.Address), body)
+	patchResp, err := bu.bmcRestClient.Patch(changePassURI, fmt.Sprintf("Patching new password on %s BMC", bu.bmcObj.Spec.BmcDetails.Address), body)
 	if err != nil {
 		return false, err
 	}
-	done, _ := bu.commonUtil.MoniteringTaskmon(patchResp.Header, bu.ctx, common.UPDATEBMC, bu.bmcObj.ObjectMeta.Name)
+	done, _ := bu.commonUtil.MoniteringTaskmon(bu.ctx, patchResp.Header, common.UPDATEBMC, bu.bmcObj.ObjectMeta.Name)
 	if done {
 		return true, nil
 	}
@@ -777,6 +776,7 @@ func (bu *bmcUtils) UpdateBmcObject(bmcObj *infraiov1.Bmc) {
 	bu.bmcObj = bmcObj
 }
 
+// GetBmcUtils will return bmcUtil
 func GetBmcUtils(ctx context.Context, bmcObj *infraiov1.Bmc, ns string, commonRec *utils.ReconcilerInterface, bmcRestClient *restclient.RestClientInterface, commonUtil common.CommonInterface, updateBmcObject bool) BmcInterface {
 	return &bmcUtils{
 		ctx:             ctx,

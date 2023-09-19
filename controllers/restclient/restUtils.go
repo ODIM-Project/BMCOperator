@@ -19,12 +19,15 @@ import (
 )
 
 // --------------REST CLIENT--------------------------
+
+// requestInterface defines the intermediate methods required for rest calls
 type requestInterface interface {
 	sendRequest(string, string, string, interface{}, []byte) (*http.Response, error)
 	getAuthType() string
 	getHeaderDetails() map[string]string
 }
 
+// RestClientInterface defines all the rest calls 
 type RestClientInterface interface {
 	Post(string, string, interface{}) (*http.Response, error)
 	Get(string, string) (map[string]interface{}, int, error)
@@ -34,6 +37,7 @@ type RestClientInterface interface {
 	RecallWithNewToken(url, reason, method string, body interface{}) (*http.Response, error)
 }
 
+// RestClient returns restclient struct
 type RestClient struct {
 	reqHeaderAuth requestInterface
 	host          string
@@ -43,6 +47,7 @@ type RestClient struct {
 	rootCA        []byte
 }
 
+// requestDetails defines the request details
 type requestDetails struct {
 	Headers  map[string]string
 	AuthType string
@@ -50,10 +55,12 @@ type requestDetails struct {
 
 //--------------SESSION----------------
 
+// sessionInterface defines the session related methods
 type sessionInterface interface {
 	getXAuthToken([]byte) (string, error)
 }
 
+// createTokenDetails holds all information required for token creation
 type createTokenDetails struct {
 	username string
 	password string
@@ -63,7 +70,7 @@ type createTokenDetails struct {
 
 //------------ HTTP CONNECTION----------------
 
-// HTTPClient interface
+// HTTPClientInterface ...
 type HTTPClientInterface interface {
 	Do(req *http.Request) (*http.Response, error)
 }

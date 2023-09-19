@@ -38,6 +38,8 @@ func (r PollingReconciler) AccommodateBiosDetails(ctx context.Context, restClien
 	}
 }
 
+
+// AccommodateBiosInfo will accommodate the bios information
 func (r PollingReconciler) AccommodateBiosInfo(ctx context.Context, biosUtil bios.BiosInterface, systemID string) {
 	r.bmcObject = r.commonRec.GetBmcObject(ctx, constants.StatusBmcSystemID, systemID, r.namespace)
 	if r.bmcObject == nil {
@@ -64,6 +66,7 @@ func (r PollingReconciler) RevertBiosDetails(ctx context.Context, restClient res
 	}
 }
 
+// CheckAndRevertBios will revert bios operation
 func (r PollingReconciler) CheckAndRevertBios(ctx context.Context, bmc infraiov1.Bmc, restClient restclient.RestClientInterface) {
 	if !common.RestartRequired[bmc.Status.BmcSystemID] {
 		r.bmcObject = &bmc

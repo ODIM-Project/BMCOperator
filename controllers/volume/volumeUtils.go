@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// VolFinalizer: finalizer for volume object
+// VolFinalizer : finalizer for volume object
 const VolFinalizer = "infra.io.volume/finalizer"
 
 // VolumeInterface declares method signatures to be defined by Volume utils

@@ -188,11 +188,11 @@ func updateKeys(secretName, namespace string, client client.Client) error {
 // r.Client.List() will work when we add the index here before using it
 func addIndex(mgr manager.Manager) {
 	cache := mgr.GetCache()
-	bmcIpFunc := func(obj client.Object) []string {
+	bmcIPFunc := func(obj client.Object) []string {
 		return []string{obj.(*infraiov1.Bmc).Spec.BmcDetails.Address}
 	}
 
-	if err := cache.IndexField(context.Background(), &infraiov1.Bmc{}, "spec.bmc.address", bmcIpFunc); err != nil {
+	if err := cache.IndexField(context.Background(), &infraiov1.Bmc{}, "spec.bmc.address", bmcIPFunc); err != nil {
 		panic(err)
 	}
 	serialNoFunc := func(obj client.Object) []string {

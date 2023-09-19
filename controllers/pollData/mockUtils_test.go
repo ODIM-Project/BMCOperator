@@ -433,7 +433,7 @@ func (m *mockEventSubscriptionUtil) ValidateMessageIDs(messageIDs []string) erro
 func (m mockCommonUtil) GetBmcSystemDetails(context.Context, *infraiov1.Bmc) map[string]interface{} {
 	return map[string]interface{}{"PowerState": "Off"}
 }
-func (m mockCommonUtil) MoniteringTaskmon(headerInfo http.Header, ctx context.Context, operation, resourceName string) (bool, map[string]interface{}) {
+func (m mockCommonUtil) MoniteringTaskmon(ctx context.Context, headerInfo http.Header, operation, resourceName string) (bool, map[string]interface{}) {
 	return true, nil
 }
 func (m mockCommonUtil) BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body []byte) (bool, map[string]interface{}) {

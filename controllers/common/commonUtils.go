@@ -38,16 +38,19 @@ const (
 )
 
 var (
+	// KubeConfigPath ...
 	KubeConfigPath string
 )
 
+// CommonInterface defines all the common methods used across bmc opertor
 type CommonInterface interface {
 	GetBmcSystemDetails(context.Context, *infraiov1.Bmc) map[string]interface{}
-	MoniteringTaskmon(headerInfo http.Header, ctx context.Context, operation, resourceName string) (bool, map[string]interface{})
+	MoniteringTaskmon(ctx context.Context, headerInfo http.Header, operation, resourceName string) (bool, map[string]interface{})
 	BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body []byte) (bool, map[string]interface{})
 	BmcDeleteOperation(ctx context.Context, aggregationURL string, resourceName string) bool
 }
 
+// CommonUtils returns commonUtil
 type CommonUtils struct {
 	restClient restclient.RestClientInterface
 }
@@ -60,7 +63,7 @@ type ComputerSystemReset struct {
 // MapOfBmc contains list of bmc's with there current state
 var MapOfBmc = make(map[string]BmcState)
 
-// trackVolumeStatus will tell us the current state of volume
+// TrackVolumeStatus will tell us the current state of volume
 // Defines volume of each storage controller of specific bmc
 // {"bmc1,ArrayController-0,1":{true,false},"bmc1,ArrayController-0,2":{true,false},"ArrayController-1":VolumeStatus{"1":{true,false},"2":{false,true},...},..},...}
 var TrackVolumeStatus = map[BmcStorageControllerVolumesStatus]VolumeStatus{}
@@ -91,6 +94,7 @@ type VolumeStatus struct {
 	IsGettingDeleted bool
 }
 
+// TaskmonLogsTable holds all the log statements for each taskmon status code for each operation
 var TaskmonLogsTable = map[string]string{
 	"201:AddBMC":                  "BMC %s is successfully added, updating bmc object...",
 	"202:AddBMC":                  "BMC %s addition is ongoing...",

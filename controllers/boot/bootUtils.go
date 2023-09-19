@@ -36,6 +36,7 @@ type Boot struct {
 	UefiTargetBootSourceOverride string   `json:"UefiTargetBootSourceOverride,omitempty"`
 }
 
+// BootInterface defines 
 type BootInterface interface {
 	GetBootAttributes(sysDetails map[string]interface{}) *infraiov1.BootSetting
 	UpdateBootAttributesOnReset(bmcName string, bootSetting *infraiov1.BootSetting)

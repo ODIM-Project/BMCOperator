@@ -68,8 +68,8 @@ var podName = os.Getenv("POD_NAME")
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *OdimReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	//commonReconciler object creation
-	transactionId := uuid.New()
-	ctx = l.CreateContextForLogging(ctx, transactionId.String(), constants.BmcOperator, constants.ODIMObjectOperationActionID, constants.ODIMObjectOperationActionName, podName)
+	transactionID := uuid.New()
+	ctx = l.CreateContextForLogging(ctx, transactionID.String(), constants.BmcOperator, constants.ODIMObjectOperationActionID, constants.ODIMObjectOperationActionName, podName)
 	commonRec := utils.GetCommonReconciler(r.Client, r.Scheme)
 	odimObj := &infraiov1.Odim{}
 	// Fetch the Odim object
@@ -166,10 +166,9 @@ func (ou *odimUtils) checkOdimConnection() bool {
 	if resp["@odata.id"] != nil {
 		ou.commonRec.UpdateOdimStatus(ou.ctx, "Connected", ou.odimObj)
 		return true
-	} else {
-		ou.commonRec.UpdateOdimStatus(ou.ctx, "Not Connected", ou.odimObj)
-		return false
 	}
+	ou.commonRec.UpdateOdimStatus(ou.ctx, "Not Connected", ou.odimObj)
+	return false
 }
 
 // updateConnectionMethodVariants updates the connection method variants in the object
@@ -216,7 +215,7 @@ func (ou *odimUtils) CreateEventSubscription(destination string) error {
 		return fmt.Errorf("error while adding default subscription for server operator: %s", err.Error())
 	}
 	if resp.StatusCode == http.StatusAccepted {
-		ok, taskResp := ou.commonUtil.MoniteringTaskmon(resp.Header, ou.ctx, common.EVENTSUBSCRIPTION, destination)
+		ok, taskResp := ou.commonUtil.MoniteringTaskmon(ou.ctx, resp.Header, common.EVENTSUBSCRIPTION, destination)
 		if !ok {
 			return fmt.Errorf("failed to create event subscription: task response %v", taskResp)
 		}
@@ -226,9 +225,9 @@ func (ou *odimUtils) CreateEventSubscription(destination string) error {
 
 func (ou *odimUtils) removeEventsSubscription() bool {
 	subscriptionsIds := []string{}
-	subscriptionsCollectionUri := "/redfish/v1/EventService/Subscriptions"
-	subscriptionsUrl := "/redfish/v1/EventService/Subscriptions/%s"
-	resp, statusCode, err := ou.odimRestClient.Get(subscriptionsCollectionUri, "Getting all  event subscription collections")
+	subscriptionsCollectionURI := "/redfish/v1/EventService/Subscriptions"
+	subscriptionsURL := "/redfish/v1/EventService/Subscriptions/%s"
+	resp, statusCode, err := ou.odimRestClient.Get(subscriptionsCollectionURI, "Getting all  event subscription collections")
 	if err != nil {
 		l.LogWithFields(ou.ctx).Errorf("error while getting event subscription collections for bmc operator: %s", err.Error())
 		return false
@@ -246,15 +245,15 @@ func (ou *odimUtils) removeEventsSubscription() bool {
 	}
 	// Checking for the operator subscription
 	for _, subs := range subscriptionsIds {
-		subUri := fmt.Sprintf(subscriptionsUrl, subs)
-		resp, statusCode, err := ou.odimRestClient.Get(subUri, "Creating default event subscription")
+		subURL := fmt.Sprintf(subscriptionsURL, subs)
+		resp, statusCode, err := ou.odimRestClient.Get(subURL, "Creating default event subscription")
 		if err != nil {
 			l.LogWithFields(ou.ctx).Errorf("error while getting subscription for bmc operator: %s", err.Error())
 			return false
 		}
 		if statusCode == http.StatusOK {
 			if resp["Name"] == "BmcOperatorSubscription" {
-				resp, err := ou.odimRestClient.Delete(subUri, "Deleting the operator events subscription")
+				resp, err := ou.odimRestClient.Delete(subURL, "Deleting the operator events subscription")
 				if err != nil {
 					l.LogWithFields(ou.ctx).Errorf("error while deleting subscription for bmc operator: %s", err.Error())
 					return false

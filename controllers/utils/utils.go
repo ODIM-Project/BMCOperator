@@ -95,13 +95,13 @@ func CompareMaps(m1, m2 map[string]string) (bool, map[string]string) {
 	distinctMap := make(map[string]string)
 	if reflect.DeepEqual(m1, m2) {
 		return true, nil
-	} else {
-		for k, v := range m1 {
-			if m2[k] != v {
-				distinctMap[k] = v
-			}
+	}
+	for k, v := range m1 {
+		if m2[k] != v {
+			distinctMap[k] = v
 		}
 	}
+
 	return false, distinctMap
 }
 

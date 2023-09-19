@@ -62,6 +62,7 @@ type firmPayloadWithTransferProtocol struct {
 	TransferProtocol string   `json:"transferProtocol"`
 }
 
+// FirmPayloadWithoutAuth ...
 type FirmPayloadWithoutAuth struct {
 	Image   string   `json:"ImageURI"`
 	Targets []string `json:"Targets"`

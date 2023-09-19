@@ -32,6 +32,7 @@ import (
 )
 
 // -------------------------------ACCOMMODATE/REVERT GO FUNCS-------------------------------------------------
+
 // AccommodateVolumeDetails will accommodate volumes created/deleted as part of Restclient
 // ODIM's state is given priority over Operator
 // volumeObjectsForStorageControllerInOperator : Existing volume objects in operator
@@ -42,7 +43,7 @@ func (pr PollingReconciler) AccommodateVolumeDetails() {
 		for _, bmc := range *allBmcObjects {
 			l.LogWithFields(pr.ctx).Info(fmt.Sprintf("Reconciling volumes for %s bmc", bmc.ObjectMeta.Name))
 			volumeObjectsForStorageControllerInOperator := pr.commonRec.GetAllVolumeObjectIds(pr.ctx, &bmc, pr.namespace)
-			volumeObjectsForStorageControllerFromODIM := pr.getAllVolumeObjectIdsFromODIM(&bmc, pr.ctx)
+			volumeObjectsForStorageControllerFromODIM := pr.getAllVolumeObjectIdsFromODIM(pr.ctx, &bmc)
 			l.LogWithFields(pr.ctx).Debug("Volumes from operator:", volumeObjectsForStorageControllerInOperator)
 			l.LogWithFields(pr.ctx).Debug("Volumes from ODIM:", volumeObjectsForStorageControllerFromODIM)
 			if volumeObjectsForStorageControllerInOperator != nil && volumeObjectsForStorageControllerFromODIM != nil {
@@ -56,7 +57,7 @@ func (pr PollingReconciler) AccommodateVolumeDetails() {
 	}
 }
 
-// AccommodateVolumeDetails will accommodate volumes created/deleted as part of Restclient
+// RevertVolumeDetails will revert volumes created/deleted as part of Restclient
 // Operator's state is given priority over ODIM
 // volumeObjectsForStorageControllerInOperator : Existing volume objects in operator
 // volumeObjectsForStorageControllerFromODIM : all volume objects present in ODIM
@@ -66,7 +67,7 @@ func (pr PollingReconciler) RevertVolumeDetails() {
 		for _, bmc := range *allBmcObjects {
 			l.LogWithFields(pr.ctx).Info(fmt.Sprintf("Reconciling volumes for %s bmc", bmc.ObjectMeta.Name))
 			volumeObjectsForStorageControllerInOperator := pr.commonRec.GetAllVolumeObjectIds(pr.ctx, &bmc, pr.namespace)
-			volumeObjectsForStorageControllerFromODIM := pr.getAllVolumeObjectIdsFromODIM(&bmc, pr.ctx)
+			volumeObjectsForStorageControllerFromODIM := pr.getAllVolumeObjectIdsFromODIM(pr.ctx, &bmc)
 			l.LogWithFields(pr.ctx).Debug("Volumes from operator:", volumeObjectsForStorageControllerInOperator)
 			l.LogWithFields(pr.ctx).Debug("Volumes from ODIM:", volumeObjectsForStorageControllerFromODIM)
 			if volumeObjectsForStorageControllerInOperator != nil && volumeObjectsForStorageControllerFromODIM != nil {
@@ -81,6 +82,7 @@ func (pr PollingReconciler) RevertVolumeDetails() {
 }
 
 // ---------------------------------------------ACCOMMODATE USE CASE-------------------------------------------------------------
+
 // checkVolumeCreatedAndAccomodate will create volume objects in operator when new volumes are added to ODIM
 // Example:
 // operator: {"ArrayController-0":[]string{"1","2","3"},"ArrayController-1":{"5","7"},"ArrayController-2":{"8"}}
@@ -159,16 +161,16 @@ func (pr PollingReconciler) checkVolumeDeletedAndRevert(bmc *infraiov1.Bmc, volu
 // getDifferenceInVolumesBetweenOdimAndOperator will get the difference between volumes in ODIM and Operator
 func (pr PollingReconciler) getDifferenceInVolumesBetweenOdimAndOperator(volumeObjectIds1 []string, volumeObjectIds2 []string) (bool, []string) {
 	var diffVolumes []string
-	for _, odimVolId := range volumeObjectIds2 { // 1 2 3 4 5
+	for _, odimVolID := range volumeObjectIds2 { // 1 2 3 4 5
 		present := false
 		for _, operatorVolID := range volumeObjectIds1 { // 1 2 3
-			if odimVolId == operatorVolID {
+			if odimVolID == operatorVolID {
 				present = true
 				break
 			}
 		}
 		if !present {
-			diffVolumes = append(diffVolumes, odimVolId)
+			diffVolumes = append(diffVolumes, odimVolID)
 		}
 	}
 	if diffVolumes != nil {
@@ -178,7 +180,7 @@ func (pr PollingReconciler) getDifferenceInVolumesBetweenOdimAndOperator(volumeO
 }
 
 // getAllVolumeObjectIdsFromODIM will get all the volume object ids currently present in ODIM
-func (pr PollingReconciler) getAllVolumeObjectIdsFromODIM(bmc *infraiov1.Bmc, ctx context.Context) map[string][]string {
+func (pr PollingReconciler) getAllVolumeObjectIdsFromODIM(ctx context.Context, bmc *infraiov1.Bmc) map[string][]string {
 	var volumesFromODIM = map[string][]string{}
 	storageDetails, _, err := pr.pollRestClient.Get(fmt.Sprintf("/redfish/v1/Systems/%s/Storage/", bmc.Status.BmcSystemID), fmt.Sprintf("Fetching Storage details for %s BMC..", bmc.Spec.BmcDetails.Address))
 	l.LogWithFields(pr.ctx).Debugf("Response from GET on storage collection url:%v", storageDetails)
@@ -189,41 +191,40 @@ func (pr PollingReconciler) getAllVolumeObjectIdsFromODIM(bmc *infraiov1.Bmc, ct
 	if storageDetails["Members"] == nil || len(storageDetails["Members"].([]interface{})) == 0 || storageDetails["Members"].([]interface{}) == nil {
 		l.LogWithFields(ctx).Info("No storage controllers present..")
 		return map[string][]string{}
-	} else {
-		arrContrDetails := storageDetails["Members"].([]interface{})
-		for _, arrayControllerPath := range arrContrDetails { // arrayControllerPath : "@odata.id": "/redfish/v1/Systems/e19e1a0c-32a9-45e9-83d1-53824085df99.1/Storage/ArrayControllers-0"
-			path := arrayControllerPath.(map[string]interface{})
-			arrayController := strings.Split(path["@odata.id"].(string), "/") //arrayController : [ redfish v1 Systems e19e1a0c-32a9-45e9-83d1-53824085df99.1 Storage ArrayControllers-0]
-			volumeResponse, _, err := pr.pollRestClient.Get(fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Volumes", bmc.Status.BmcSystemID, arrayController[len(arrayController)-1]), fmt.Sprintf("Fetching Volume details for %s BMC..", bmc.Spec.BmcDetails.Address))
-			l.LogWithFields(pr.ctx).Debugf("Response from GET on volume collection url:%v", volumeResponse)
-			if err != nil {
-				l.LogWithFields(ctx).Error(err, fmt.Sprintf("Error getting volume details for %s", arrayController[len(arrayController)-1]))
-			}
-			if volumeResponse["Members"] == nil || len(volumeResponse["Members"].([]interface{})) == 0 || volumeResponse["Members"].([]interface{}) == nil {
-				volumesFromODIM[arrayController[len(arrayController)-1]] = []string{}
-				continue
-			}
-			volumeDetails := volumeResponse["Members"].([]interface{})
-			var volumeIds []string
-			for _, eachVolPath := range volumeDetails {
-				path := eachVolPath.(map[string]interface{})
-				eachVol := path["@odata.id"].(string) //eachVol : redfish/v1/Systems/e19e1a0c-32a9-45e9-83d1-53824085df99.1/Storage/ArrayControllers-0/Volumes/1
-				volumeIds = append(volumeIds, string(eachVol[len(eachVol)-1]))
-			}
-			volumesFromODIM[arrayController[len(arrayController)-1]] = volumeIds
-		}
-		return volumesFromODIM
 	}
+	arrContrDetails := storageDetails["Members"].([]interface{})
+	for _, arrayControllerPath := range arrContrDetails { // arrayControllerPath : "@odata.id": "/redfish/v1/Systems/e19e1a0c-32a9-45e9-83d1-53824085df99.1/Storage/ArrayControllers-0"
+		path := arrayControllerPath.(map[string]interface{})
+		arrayController := strings.Split(path["@odata.id"].(string), "/") //arrayController : [ redfish v1 Systems e19e1a0c-32a9-45e9-83d1-53824085df99.1 Storage ArrayControllers-0]
+		volumeResponse, _, err := pr.pollRestClient.Get(fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Volumes", bmc.Status.BmcSystemID, arrayController[len(arrayController)-1]), fmt.Sprintf("Fetching Volume details for %s BMC..", bmc.Spec.BmcDetails.Address))
+		l.LogWithFields(pr.ctx).Debugf("Response from GET on volume collection url:%v", volumeResponse)
+		if err != nil {
+			l.LogWithFields(ctx).Error(err, fmt.Sprintf("Error getting volume details for %s", arrayController[len(arrayController)-1]))
+		}
+		if volumeResponse["Members"] == nil || len(volumeResponse["Members"].([]interface{})) == 0 || volumeResponse["Members"].([]interface{}) == nil {
+			volumesFromODIM[arrayController[len(arrayController)-1]] = []string{}
+			continue
+		}
+		volumeDetails := volumeResponse["Members"].([]interface{})
+		var volumeIds []string
+		for _, eachVolPath := range volumeDetails {
+			path := eachVolPath.(map[string]interface{})
+			eachVol := path["@odata.id"].(string) //eachVol : redfish/v1/Systems/e19e1a0c-32a9-45e9-83d1-53824085df99.1/Storage/ArrayControllers-0/Volumes/1
+			volumeIds = append(volumeIds, string(eachVol[len(eachVol)-1]))
+		}
+		volumesFromODIM[arrayController[len(arrayController)-1]] = volumeIds
+	}
+	return volumesFromODIM
 }
 
 // getVolumeDetailsAndCreateVolumeObject will get newly created volume details from ODIM and create new objects for it in operator
 func (pr PollingReconciler) getVolumeDetailsAndCreateVolumeObject(bmc *infraiov1.Bmc, storageController string, volumeIds []string) {
-	for _, volId := range volumeIds {
-		volumeURL := fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Volumes/%s", bmc.Status.BmcSystemID, storageController, volId)
-		newVolumeDetails, _, err := pr.pollRestClient.Get(volumeURL, fmt.Sprintf("Fetching newly created Volume %s details", volId))
+	for _, volID := range volumeIds {
+		volumeURL := fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Volumes/%s", bmc.Status.BmcSystemID, storageController, volID)
+		newVolumeDetails, _, err := pr.pollRestClient.Get(volumeURL, fmt.Sprintf("Fetching newly created Volume %s details", volID))
 		l.LogWithFields(pr.ctx).Debugf("Response from GET on %s:%v", volumeURL, newVolumeDetails)
 		if err != nil {
-			l.LogWithFields(pr.ctx).Error(err, fmt.Sprintf("Error getting new volume %s details", volId))
+			l.LogWithFields(pr.ctx).Error(err, fmt.Sprintf("Error getting new volume %s details", volID))
 		}
 		var newVolume = infraiov1.Volume{}
 		newVolume.ObjectMeta.Namespace = pr.namespace
@@ -232,7 +233,7 @@ func (pr PollingReconciler) getVolumeDetailsAndCreateVolumeObject(bmc *infraiov1
 			volName = strings.ToLower(strings.ReplaceAll(newVolumeDetails["Name"].(string), " ", ""))
 		} else {
 			l.LogWithFields(pr.ctx).Info("Volume name is not present, hence using the storageID and volume ID as volume name")
-			volName = storageController + "_vol" + volId
+			volName = storageController + "_vol" + volID
 		}
 		newVolume.ObjectMeta.Name = bmc.ObjectMeta.Name + "." + volName
 		newVolume.ObjectMeta.Annotations = map[string]string{}
@@ -281,8 +282,8 @@ func (pr PollingReconciler) deleteVolumeObjects(bmc *infraiov1.Bmc, storageContr
 	allVolumeObjects := pr.commonRec.GetAllVolumeObjects(pr.ctx, bmc.ObjectMeta.Name, pr.namespace)
 	for _, volObj := range allVolumeObjects {
 		if volObj.Status.StorageControllerID == storageController {
-			for _, volId := range volumeIds {
-				if volObj.Status.VolumeID == volId {
+			for _, volID := range volumeIds {
+				if volObj.Status.VolumeID == volID {
 					controllerutil.RemoveFinalizer(volObj, volume.VolFinalizer)
 					err := pr.commonRec.GetCommonReconcilerClient().Update(pr.ctx, volObj)
 					if err != nil {
@@ -299,8 +300,8 @@ func (pr PollingReconciler) deleteVolumeObjects(bmc *infraiov1.Bmc, storageContr
 
 // getVolumeObjectDetailsAndCreateVolumeInODIM will get deleted volume details from existing volume objects and create volumes
 func (pr PollingReconciler) getVolumeObjectDetailsAndCreateVolumeInODIM(bmcObj *infraiov1.Bmc, storageController string, volumeIds []string) {
-	for _, volId := range volumeIds {
-		existingVolObj := pr.commonRec.GetVolumeObjectByVolumeID(pr.ctx, volId, pr.namespace)
+	for _, volID := range volumeIds {
+		existingVolObj := pr.commonRec.GetVolumeObjectByVolumeID(pr.ctx, volID, pr.namespace)
 		pr.volUtil.UpdateVolumeObject(existingVolObj)
 		// setting updateVolumeObject = false because we are not creating new volume object ,since we already have an existing one.
 		l.LogWithFields(pr.ctx).Info(fmt.Sprintf("Creating %s volume in ODIM", existingVolObj.ObjectMeta.Name))

@@ -24,7 +24,7 @@ import (
 	l "github.com/ODIM-Project/BMCOperator/logs"
 )
 
-// Encryption with OAEP padding
+// EncryptWithPublicKey encrypts with OAEP padding
 func EncryptWithPublicKey(ctx context.Context, secretMessage string,
 	key rsa.PublicKey) string {
 
@@ -40,7 +40,7 @@ func EncryptWithPublicKey(ctx context.Context, secretMessage string,
 	return base64.StdEncoding.EncodeToString(ciphertext)
 }
 
-// Decryption
+// DecryptWithPrivateKey decrypts with OAEP padding
 func DecryptWithPrivateKey(ctx context.Context, cipherText string,
 	privKey rsa.PrivateKey, doBase64Decode bool) string {
 	ct := []byte(cipherText)

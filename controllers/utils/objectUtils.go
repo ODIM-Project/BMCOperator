@@ -11,6 +11,7 @@
 // WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 // License for the specific language governing permissions and limitations
 // under the License.
+
 package controllers
 
 import (
@@ -41,11 +42,13 @@ var (
 	}
 )
 
+// CommonReconciler ...
 type CommonReconciler struct {
 	Client client.Client
 	Scheme *runtime.Scheme
 }
 
+// ReconcilerInterface defines all the object utility methods
 type ReconcilerInterface interface {
 	//get objects
 	GetBmcObject(ctx context.Context, field, value, ns string) *infraiov1.Bmc
@@ -95,14 +98,17 @@ type ReconcilerInterface interface {
 func GetCommonReconciler(c client.Client, s *runtime.Scheme) ReconcilerInterface {
 	return &CommonReconciler{Client: c, Scheme: s}
 }
-func (c *CommonReconciler) GetCommonReconcilerClient() client.Client {
-	return c.Client
-}
-func (c *CommonReconciler) GetCommonReconcilerScheme() *runtime.Scheme {
-	return c.Scheme
+// GetCommonReconcilerClient returns client 
+func (r *CommonReconciler) GetCommonReconcilerClient() client.Client {
+	return r.Client
 }
 
-// ignoreStatusUpdate ignores reconcile when status/metadata is updated
+// GetCommonReconcilerScheme returns scheme
+func (r *CommonReconciler) GetCommonReconcilerScheme() *runtime.Scheme {
+	return r.Scheme
+}
+
+// IgnoreStatusUpdate ignores reconcile when status/metadata is updated
 func IgnoreStatusUpdate() predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: updateFunc,
@@ -110,6 +116,7 @@ func IgnoreStatusUpdate() predicate.Predicate {
 }
 
 // ----------------------------GET OBJECTS---------------------------------
+
 // GetBmcObject is used to get bmc object details based on given field and value
 func (r *CommonReconciler) GetBmcObject(ctx context.Context, field, value, ns string) *infraiov1.Bmc {
 	list := &infraiov1.BmcList{}
@@ -204,6 +211,7 @@ func (r *CommonReconciler) GetBootObject(ctx context.Context, field, value, ns s
 	return &list.Items[0]
 }
 
+// GetOdimObject returns the odim object
 func (r *CommonReconciler) GetOdimObject(ctx context.Context, field, value, ns string) *infraiov1.Odim {
 	list := &infraiov1.OdimList{}
 	opts := []client.ListOption{
@@ -222,6 +230,7 @@ func (r *CommonReconciler) GetOdimObject(ctx context.Context, field, value, ns s
 	return &list.Items[0]
 }
 
+// GetVolumeObject returns the volume object
 func (r *CommonReconciler) GetVolumeObject(ctx context.Context, bmcIP, ns string) *infraiov1.Volume {
 	list := &infraiov1.VolumeList{}
 	opts := []client.ListOption{
@@ -244,6 +253,7 @@ func (r *CommonReconciler) GetVolumeObject(ctx context.Context, bmcIP, ns string
 	return &list.Items[0]
 }
 
+// GetAllVolumeObjects returns all the volume objects in given namespace
 func (r *CommonReconciler) GetAllVolumeObjects(ctx context.Context, bmcIP, ns string) []*infraiov1.Volume {
 	list := &infraiov1.VolumeList{}
 	volList := []*infraiov1.Volume{}
@@ -423,7 +433,7 @@ func (r *CommonReconciler) GetEventMessageRegistryObject(ctx context.Context, fi
 
 // -----------------------------------------CREATE OBJECTS----------------------------------------------
 
-// createBiosSettingObject is used for creating bios setting object with same name and namespace as of bmc
+// CreateBiosSettingObject is used for creating bios setting object with same name and namespace as of bmc
 func (r *CommonReconciler) CreateBiosSettingObject(ctx context.Context, biosAttributes map[string]string, bmcObj *infraiov1.Bmc) bool {
 	bios := infraiov1.BiosSetting{}
 	bios.ObjectMeta.Name = bmcObj.ObjectMeta.Name
@@ -629,6 +639,7 @@ func (r *CommonReconciler) CheckAndCreateEventMessageObject(ctx context.Context,
 }
 
 // ----------------------------------------UPDATE OBJECT STATUS---------------------------------------
+
 // UpdateBiosSettingObject used to update the bios object
 func (r *CommonReconciler) UpdateBiosSettingObject(ctx context.Context, biosAttributes map[string]string, biosObj *infraiov1.BiosSetting) bool {
 	biosObj.Spec.Bios = map[string]string{}
@@ -719,7 +730,8 @@ func (r *CommonReconciler) UpdateEventsubscriptionStatus(ctx context.Context, ev
 }
 
 // ---------------------------------GET UPDATED OBJECT-----------------------------------
-// getUpdatedBmcObject used to get updated BMC object
+
+// GetUpdatedBmcObject used to get updated BMC object
 func (r *CommonReconciler) GetUpdatedBmcObject(ctx context.Context, ns types.NamespacedName, bmcObj *infraiov1.Bmc) {
 	err := r.Client.Get(ctx, ns, bmcObj)
 	if err != nil {
@@ -781,7 +793,8 @@ func (r *CommonReconciler) GetUpdatedEventsubscriptionObjects(ctx context.Contex
 }
 
 // -----------------------------GET OBJECT DETAILS--------------------------
-// getSecret returns the username,password,authenticationType for a particular secret
+
+// GetObjectSecret returns the username,password,authenticationType for a particular secret
 func (r *CommonReconciler) GetObjectSecret(ctx context.Context, secret *corev1.Secret, secretName, rootdir string) (string, string, string) {
 
 	ns := types.NamespacedName{Namespace: config.Data.Namespace, Name: secretName}
@@ -795,7 +808,7 @@ func (r *CommonReconciler) GetObjectSecret(ctx context.Context, secret *corev1.S
 	return user, pass, authType
 }
 
-// getHostPort returns host,port of odim
+// GetHostPort returns host,port of odim
 func GetHostPort(ctx context.Context, uri string) (string, string, error) {
 	hostport, err := url.Parse(uri)
 	if err != nil {

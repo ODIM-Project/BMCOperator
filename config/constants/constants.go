@@ -31,49 +31,73 @@ const (
 	Accommodate = "Accommodate"
 	// Revert contails string for Revert poll Action
 	Revert = "Revert"
-	// ConfigMapName
+	// ConfigMapName holds the name of config map
 	ConfigMapName = "config"
 	// ILOManufacturer is the manufacturer name for iLO BMC
 	ILOManufacturer = "HPE"
-
+	// SleepTime for object update
 	SleepTime           = 30 //sec
+	// RetryCount for taskmon
 	RetryCount          = 10
-	PluginSyncInSeconds = 120 //sec
 
 	// Used for indexing in List()
+
+	// MetadataName ...
 	MetadataName              = "metadata.name"
+	// StatusSerialNumber ...
 	StatusSerialNumber        = "status.serialNumber"
+	// SpecBmcAddress ...
 	SpecBmcAddress            = "spec.bmc.address"
+	// StatusBmcSystemID ...
 	StatusBmcSystemID         = "status.bmcSystemId"
+	// StatusEventsubscriptionID ...
 	StatusEventsubscriptionID = "status.eventSubscriptionID"
 
-	// systemReset event
+	// PendingForResetEvent : systemReset event
 	PendingForResetEvent = "Pending for"
 
-	//Volume request details
+	// ApplyTime : Volume request details
 	ApplyTime = "OnReset"
 
 	// EventsubscriptionFinalizer is the finalizer for eventsubscription
 	EventsubscriptionFinalizer = "infra.io.eventsubscription/finalizer"
 
-	//Logging operation ActionID and ActionName
+	// BmcOperator : Logging operation ActionID and ActionName
 	BmcOperator                   = "bmc-operator"
+	// BMCSettingActionID ...
 	BMCSettingActionID            = "001"
+	// BMCSettingActionName ...
 	BMCSettingActionName          = "BMCOperations"
+	// BIOSSettingActionID ...
 	BIOSSettingActionID           = "002"
+	// BIOSSettingActionName ...
 	BIOSSettingActionName         = "BIOSSettings"
+	// BootOrderActionID ...
 	BootOrderActionID             = "003"
+	// BootOrderActionName ...
 	BootOrderActionName           = "BootOrderSettings"
+	// VolumeActionID ...
 	VolumeActionID                = "004"
+	// VolumeActionName ...
 	VolumeActionName              = "VolumeOperations"
+	// ODIMObjectOperationActionID ...
 	ODIMObjectOperationActionID   = "000"
+	// ODIMObjectOperationActionName ...
 	ODIMObjectOperationActionName = "ODIMRegistration"
+	// PollingActionID ...
 	PollingActionID               = "006"
+	// PollingActionName ...
 	PollingActionName             = "GetPollingData"
+	// EventClientActionID ...
 	EventClientActionID           = "006"
+	// EventClientActionName ...
 	EventClientActionName         = "EventClient"
+	// EventSubscriptionActionName ...
 	EventSubscriptionActionName   = "EventSubscription"
+	// EventSubscriptionActionID ...
 	EventSubscriptionActionID     = "007"
+	// TrackFileConfigActionName ...
 	TrackFileConfigActionName     = "TrackConfigChanges"
+	// TrackFileConfigActionID ...
 	TrackFileConfigActionID       = "008"
 )

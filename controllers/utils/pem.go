@@ -28,36 +28,38 @@ var (
 	MuxLock = &sync.Mutex{}
 )
 
+// ExportRsaPrivateKeyAsPemStr returns private key as pem string
 func ExportRsaPrivateKeyAsPemStr(privkey *rsa.PrivateKey) string {
-
-	privkey_bytes, err := x509.MarshalPKCS8PrivateKey(privkey)
+	privkeyBytes, err := x509.MarshalPKCS8PrivateKey(privkey)
 	if err != nil {
-		privkey_bytes = x509.MarshalPKCS1PrivateKey(privkey)
+		privkeyBytes = x509.MarshalPKCS1PrivateKey(privkey)
 	}
-	privkey_pem := pem.EncodeToMemory(
+	privkeyPem := pem.EncodeToMemory(
 		&pem.Block{
 			Type:  "RSA PRIVATE KEY",
-			Bytes: privkey_bytes,
+			Bytes: privkeyBytes,
 		},
 	)
-	return string(privkey_pem)
+	return string(privkeyPem)
 }
 
+// ExportRsaPublicKeyAsPemStr returns public key as pem string
 func ExportRsaPublicKeyAsPemStr(pubkey *rsa.PublicKey) (string, error) {
-	pubkey_bytes, err := x509.MarshalPKIXPublicKey(pubkey)
+	pubkeyBytes, err := x509.MarshalPKIXPublicKey(pubkey)
 	if err != nil {
 		return "", err
 	}
-	pubkey_pem := pem.EncodeToMemory(
+	pubkeyPem := pem.EncodeToMemory(
 		&pem.Block{
 			Type:  "RSA PUBLIC KEY",
-			Bytes: pubkey_bytes,
+			Bytes: pubkeyBytes,
 		},
 	)
 
-	return string(pubkey_pem), nil
+	return string(pubkeyPem), nil
 }
 
+// ParseRsaPublicKeyFromPemStr returns the public key from string
 func ParseRsaPublicKeyFromPemStr(pubPEM string) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode([]byte(pubPEM))
 	if block == nil {
@@ -78,6 +80,7 @@ func ParseRsaPublicKeyFromPemStr(pubPEM string) (*rsa.PublicKey, error) {
 	return nil, errors.New("Key type is not RSA")
 }
 
+// ParseRsaPrivateKeyFromPemStr returns the private key from string
 func ParseRsaPrivateKeyFromPemStr(privPEM string) (*rsa.PrivateKey, error) {
 	MuxLock.Lock()
 	defer MuxLock.Unlock()

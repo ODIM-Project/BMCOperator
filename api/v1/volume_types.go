@@ -29,6 +29,7 @@ type VolumeSpec struct {
 	Drives              []int  `json:"drives,omitempty"`
 }
 
+// Identifier holds the DurableName and DurableNameFormat
 type Identifier struct {
 	DurableName       string `json:"DurableName"`
 	DurableNameFormat string `json:"DurableNameFormat"`
@@ -46,6 +47,7 @@ type VolumeStatus struct {
 	Identifiers         Identifier `json:"Identifiers"`
 }
 
+// Volume ...
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // Volume is the Schema for the volumes API
@@ -60,6 +62,7 @@ type Volume struct {
 	Status            VolumeStatus `json:"status,omitempty"`
 }
 
+// VolumeList ...
 // +kubebuilder:object:root=true
 // VolumeList contains a list of Volume
 type VolumeList struct {

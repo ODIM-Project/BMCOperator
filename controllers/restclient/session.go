@@ -37,7 +37,7 @@ func (rc *RestClient) getNewTokenAndUpdateOdimClient() error {
 }
 
 func (token createTokenDetails) getXAuthToken(rootCA []byte) (string, error) {
-	sessionUrl := fmt.Sprintf("https://%s:%s/redfish/v1/SessionService/Sessions", token.host, token.port)
+	sessionURL := fmt.Sprintf("https://%s:%s/redfish/v1/SessionService/Sessions", token.host, token.port)
 	creds := map[string]string{"UserName": token.username, "Password": token.password}
 	body, err := json.Marshal(creds)
 	if err != nil {
@@ -45,7 +45,7 @@ func (token createTokenDetails) getXAuthToken(rootCA []byte) (string, error) {
 	}
 	conn := getConn(rootCA)
 	// Create a HTTP post request
-	req, err := http.NewRequest("POST", sessionUrl, bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", sessionURL, bytes.NewBuffer(body))
 	if err != nil {
 		return "Unable to create request for session!", err
 	}

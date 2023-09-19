@@ -65,8 +65,8 @@ type VolumeReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *VolumeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	//common reconciler ddeclaration
-	transactionId := uuid.New()
-	ctx = l.CreateContextForLogging(ctx, transactionId.String(), constants.BmcOperator, constants.VolumeActionID, constants.VolumeActionName, podName)
+	transactionID := uuid.New()
+	ctx = l.CreateContextForLogging(ctx, transactionID.String(), constants.BmcOperator, constants.VolumeActionID, constants.VolumeActionName, podName)
 	commonRec := utils.GetCommonReconciler(r.Client, r.Scheme)
 	//create rest client
 	odimObj := commonRec.GetOdimObject(ctx, constants.MetadataName, "odim", req.Namespace)
@@ -178,7 +178,7 @@ func (vu *volumeUtils) CreateVolume(bmcObj *infraiov1.Bmc, dispName string, name
 	}
 	if resp.StatusCode == http.StatusAccepted {
 		// BmcObj name is sent as ""
-		done, _ := vu.commonUtil.MoniteringTaskmon(resp.Header, vu.ctx, common.CREATEVOLUME, vu.volObj.ObjectMeta.Name)
+		done, _ := vu.commonUtil.MoniteringTaskmon(vu.ctx, resp.Header, common.CREATEVOLUME, vu.volObj.ObjectMeta.Name)
 		if done {
 			commonRec.UpdateBmcObjectOnReset(vu.ctx, bmcObj, fmt.Sprintf("%s %s Volume", constants.PendingForResetEvent, dispName))
 			return true, nil
@@ -272,16 +272,16 @@ func (vu *volumeUtils) GetVolumeRequestPayload(systemID, dispName string) []byte
 	var reqBody requestPayload
 	//check added to see if volume creation is triggered from reconcile, where volume object will already be present and we have to fetch details from status
 	if vu.volObj.Spec.RAIDType == "" && vu.volObj.Spec.Drives == nil && vu.volObj.Spec.StorageControllerID == "" {
-		for _, driveId := range vu.volObj.Status.Drives {
+		for _, driveID := range vu.volObj.Status.Drives {
 			// TODO : check if the drive is present and then proceed
-			driveDet := map[string]string{"@odata.id": fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Drives/%s", systemID, vu.volObj.Status.StorageControllerID, strconv.Itoa(driveId))}
+			driveDet := map[string]string{"@odata.id": fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Drives/%s", systemID, vu.volObj.Status.StorageControllerID, strconv.Itoa(driveID))}
 			linkBody.Drives = append(linkBody.Drives, driveDet)
 		}
 		reqBody = requestPayload{RAIDType: vu.volObj.Status.RAIDType, Links: linkBody, DisplayName: dispName, ApplyTime: constants.ApplyTime}
 	} else { // when volume is created via operator directly, it will pass through this case
-		for _, driveId := range vu.volObj.Spec.Drives {
+		for _, driveID := range vu.volObj.Spec.Drives {
 			// TODO : check if the drive is present and then proceed
-			driveDet := map[string]string{"@odata.id": fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Drives/%s", systemID, vu.volObj.Spec.StorageControllerID, strconv.Itoa(driveId))}
+			driveDet := map[string]string{"@odata.id": fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Drives/%s", systemID, vu.volObj.Spec.StorageControllerID, strconv.Itoa(driveID))}
 			linkBody.Drives = append(linkBody.Drives, driveDet)
 		}
 		reqBody = requestPayload{RAIDType: vu.volObj.Spec.RAIDType, Links: linkBody, DisplayName: dispName, ApplyTime: constants.ApplyTime}
@@ -305,7 +305,7 @@ func (vu *volumeUtils) DeleteVolume(bmcObj *infraiov1.Bmc) bool {
 	}
 	if deleteResp.StatusCode == http.StatusAccepted {
 		//monitering taskmon
-		done, _ := vu.commonUtil.MoniteringTaskmon(deleteResp.Header, vu.ctx, common.DELETEVOLUME, vu.volObj.ObjectMeta.Name)
+		done, _ := vu.commonUtil.MoniteringTaskmon(vu.ctx, deleteResp.Header, common.DELETEVOLUME, vu.volObj.ObjectMeta.Name)
 		if done {
 			return true
 		}

@@ -168,7 +168,7 @@ func (r PollingReconciler) AddEventSubscription(subscriptionID string) {
 			return
 		}
 		if resp.StatusCode == http.StatusAccepted {
-			done, _ := r.commonUtil.MoniteringTaskmon(resp.Header, r.ctx, common.EVENTSUBSCRIPTION, eventsubObj.ObjectMeta.Name)
+			done, _ := r.commonUtil.MoniteringTaskmon(r.ctx, resp.Header, common.EVENTSUBSCRIPTION, eventsubObj.ObjectMeta.Name)
 			if done {
 				l.LogWithFields(r.ctx).Info("\nEventsubscription created successfully!\n")
 				l.LogWithFields(r.ctx).Info("Updating Eventsubscription status...")

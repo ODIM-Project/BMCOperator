@@ -24,6 +24,7 @@ import (
 	l "github.com/ODIM-Project/BMCOperator/logs"
 )
 
+// AccommodateState will accommodate the changes for the state of bmc
 func (pr *PollingReconciler) AccommodateState() {
 	powerStateOfBMC, powerStateInBMCObject := pr.getPowerStateOnBMCAndObject()
 	l.LogWithFields(pr.ctx).Info(fmt.Sprintf("Configured power state for %s BMC in object: `%s`", pr.bmcObject.Spec.BmcDetails.Address, powerStateInBMCObject))
@@ -38,6 +39,7 @@ func (pr *PollingReconciler) AccommodateState() {
 	}
 }
 
+// RevertState will revert the changes for state of bmc
 func (pr *PollingReconciler) RevertState() {
 	var request common.ComputerSystemReset
 	powerStateOfBMC, powerStateInBMCObject := pr.getPowerStateOnBMCAndObject()
@@ -61,7 +63,7 @@ func (pr *PollingReconciler) RevertState() {
 			return
 		}
 		if resp.StatusCode == http.StatusAccepted {
-			done, _ := pr.commonUtil.MoniteringTaskmon(resp.Header, pr.ctx, common.RESETBMC, pr.bmcObject.ObjectMeta.Name)
+			done, _ := pr.commonUtil.MoniteringTaskmon(pr.ctx, resp.Header, common.RESETBMC, pr.bmcObject.ObjectMeta.Name)
 			if done {
 				l.LogWithFields(pr.ctx).Info(fmt.Sprintf("Successfully reverted power state for %s BMC to %s", pr.bmcObject.ObjectMeta.Name, powerStateInBMCObject))
 			}

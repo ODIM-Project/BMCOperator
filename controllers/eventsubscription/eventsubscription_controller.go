@@ -150,7 +150,7 @@ func (esu *eventsubscriptionUtils) CreateEventsubscription(eventSubObj *infraiov
 			return false, err
 		}
 		if resp.StatusCode == http.StatusAccepted {
-			done, _ := esu.commonUtil.MoniteringTaskmon(resp.Header, esu.ctx, common.EVENTSUBSCRIPTION, esu.eventSubObj.ObjectMeta.Name)
+			done, _ := esu.commonUtil.MoniteringTaskmon(esu.ctx, resp.Header, common.EVENTSUBSCRIPTION, esu.eventSubObj.ObjectMeta.Name)
 			if done {
 				l.LogWithFields(esu.ctx).Info("\nEventsubscription created successfully!\n")
 				l.LogWithFields(esu.ctx).Info("Updating Eventsubscription status...")

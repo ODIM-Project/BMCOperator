@@ -69,8 +69,8 @@ var podName = os.Getenv("POD_NAME")
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *BiosSettingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	transactionId := uuid.New()
-	ctx = l.CreateContextForLogging(ctx, transactionId.String(), constants.BmcOperator, constants.BIOSSettingActionID, constants.BIOSSettingActionName, podName)
+	transactionID := uuid.New()
+	ctx = l.CreateContextForLogging(ctx, transactionID.String(), constants.BmcOperator, constants.BIOSSettingActionID, constants.BIOSSettingActionName, podName)
 	//common reconciler ddeclaration
 	commonRec := utils.GetCommonReconciler(r.Client, r.Scheme)
 	//create rest client
@@ -147,16 +147,15 @@ func (r *BiosSettingReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				}
 				if patchResponse.StatusCode == http.StatusAccepted {
 					//add taskmon here
-					done, _ := biosUtil.(*biosUtils).commonUtil.MoniteringTaskmon(patchResponse.Header, ctx, common.BIOSSETTING, bmcObject.ObjectMeta.Name)
+					done, _ := biosUtil.(*biosUtils).commonUtil.MoniteringTaskmon(ctx, patchResponse.Header, common.BIOSSETTING, bmcObject.ObjectMeta.Name)
 					if done {
 						l.LogWithFields(ctx).Info("Bios configured, Please reset system now.")
 						commonRec.UpdateBmcObjectOnReset(ctx, bmcObject, fmt.Sprintf("%s Bios", constants.PendingForResetEvent))
 						return ctrl.Result{}, nil
-					} else {
-						err = commonRec.GetCommonReconcilerClient().Delete(ctx, biosObj)
-						if err != nil {
-							l.LogWithFields(ctx).Error(fmt.Sprintf("error while deleteing bios setting object for %s BMC:", biosBmcIP), err.Error())
-						}
+					}
+					err = commonRec.GetCommonReconcilerClient().Delete(ctx, biosObj)
+					if err != nil {
+						l.LogWithFields(ctx).Error(fmt.Sprintf("error while deleteing bios setting object for %s BMC:", biosBmcIP), err.Error())
 					}
 				} else {
 					l.LogWithFields(ctx).Info(fmt.Sprintf("Could not update bios settings for %s BMC, try again!", bmcObject.Spec.BmcDetails.Address))
@@ -250,20 +249,20 @@ func (bs *biosUtils) ValidateBiosAttributes(biosID string) (bool, map[string]int
 
 // getBiosLinkAndBody fetches the bios uri and builds the bios body
 func (bs *biosUtils) getBiosLinkAndBody(resp map[string]interface{}, biosProps map[string]interface{}, biosBmcIP string) (string, []byte) {
-	biosId := resp["Bios"].(map[string]interface{})["@odata.id"].(string)
-	bs.biosObj.ObjectMeta.Annotations["odata.id"] = biosId
+	biosID := resp["Bios"].(map[string]interface{})["@odata.id"].(string)
+	bs.biosObj.ObjectMeta.Annotations["odata.id"] = biosID
 	err := bs.commonRec.GetCommonReconcilerClient().Update(bs.ctx, bs.biosObj)
 	if err != nil {
 		l.LogWithFields(bs.ctx).Error(fmt.Sprintf("Error: Updating %s BIOS object annotations of bmc: %s", biosBmcIP, err.Error()))
 	}
-	biosResp, _, err := bs.biosRestClient.Get(biosId, fmt.Sprintf("Fetching Bios Details for %s BMC", biosBmcIP))
+	biosResp, _, err := bs.biosRestClient.Get(biosID, fmt.Sprintf("Fetching Bios Details for %s BMC", biosBmcIP))
 	if err != nil {
 		l.LogWithFields(bs.ctx).Errorf("Error fetching on Bios odata.id of %s bmc: %s", biosBmcIP, err.Error())
 		return "", nil
 	}
 	biosLink := biosResp["@Redfish.Settings"].(map[string]interface{})["SettingsObject"].(map[string]interface{})["@odata.id"].(string)
-	bios_settings := map[string]map[string]interface{}{"Attributes": biosProps}
-	biosBody, err := json.Marshal(bios_settings)
+	biosSettings := map[string]map[string]interface{}{"Attributes": biosProps}
+	biosBody, err := json.Marshal(biosSettings)
 	if err != nil {
 		l.LogWithFields(bs.ctx).Errorf("Failed to marshal Bios Payload: %s", err.Error())
 		biosBody = nil
@@ -339,6 +338,7 @@ func (bs *biosUtils) GetBiosAttributeID(biosVersion string, bmcObj *infraiov1.Bm
 	return "", nil
 }
 
+// GetBiosUtils return biosUtil
 func GetBiosUtils(ctx context.Context, biosObj *infraiov1.BiosSetting, commonRec utils.ReconcilerInterface, biosRestClient restclient.RestClientInterface, ns string) BiosInterface {
 	return &biosUtils{
 		ctx:            ctx,

@@ -259,7 +259,7 @@ func (m mockCommonUtil) GetBmcSystemDetails(context.Context, *infraiov1.Bmc) map
 		},
 	}
 }
-func (m mockCommonUtil) MoniteringTaskmon(headerInfo http.Header, ctx context.Context, operation, resourceName string) (bool, map[string]interface{}) {
+func (m mockCommonUtil) MoniteringTaskmon(ctx context.Context, headerInfo http.Header, operation, resourceName string) (bool, map[string]interface{}) {
 	// taskmon success
 	return true, nil
 }

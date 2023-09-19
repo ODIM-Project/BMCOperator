@@ -57,8 +57,8 @@ var podName = os.Getenv("POD_NAME")
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *BootOrderSettingsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	transactionId := uuid.New()
-	ctx = l.CreateContextForLogging(ctx, transactionId.String(), constants.BmcOperator, constants.BootOrderActionID, constants.BootOrderActionName, podName)
+	transactionID := uuid.New()
+	ctx = l.CreateContextForLogging(ctx, transactionID.String(), constants.BmcOperator, constants.BootOrderActionID, constants.BootOrderActionName, podName)
 	bootObj := &infraiov1.BootOrderSetting{}
 	commonRec := utils.GetCommonReconciler(r.Client, r.Scheme)
 	err := r.Get(ctx, req.NamespacedName, bootObj)
@@ -185,7 +185,7 @@ func (bo *bootUtils) UpdateBootDetails(ctx context.Context, systemID, bootBmcIP 
 	bootLink := "/redfish/v1/Systems/" + systemID
 	patchResponse, err := bo.bootRestClient.Patch(bootLink, "Patching boot payload..", bootBody)
 	if err == nil && patchResponse.StatusCode == http.StatusAccepted {
-		ok, _ := bo.commonUtil.MoniteringTaskmon(patchResponse.Header, ctx, common.BOOTSETTING, bootBmcObj.Name)
+		ok, _ := bo.commonUtil.MoniteringTaskmon(ctx, patchResponse.Header, common.BOOTSETTING, bootBmcObj.Name)
 		return ok
 	}
 
@@ -255,6 +255,7 @@ func (bo *bootUtils) GetBootAttributes(sysDetails map[string]interface{}) *infra
 	return &bootDetails
 }
 
+// GetBootUtils returns bootUtil
 func GetBootUtils(ctx context.Context, bootObj *infraiov1.BootOrderSetting, commonRec utils.ReconcilerInterface, bootRestClient restclient.RestClientInterface, commonUtil common.CommonInterface, ns string) BootInterface {
 	return &bootUtils{
 		ctx:            ctx,

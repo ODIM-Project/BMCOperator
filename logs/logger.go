@@ -42,7 +42,7 @@ var priorityLogFields = []string{
 const (
 	actionid        = "actionid"
 	actionname      = "actionname"
-	defaultThreadId = "0"
+	defaultThreadID = "0"
 	processname     = "processname"
 	threadid        = "threadid"
 	threadname      = "threadname"
@@ -78,7 +78,10 @@ var logFields = map[string][]string{
 // SysLogFormatter implements logrus Format interface. It provides a formatter for odim in syslog format
 type SysLogFormatter struct{}
 
+// Log is of logrus.Entry type
 var Log *logrus.Entry
+
+type ctxValue string
 
 func init() {
 	Log = logrus.NewEntry(logrus.New())
@@ -276,16 +279,16 @@ func (format LogFormat) MarshalText() ([]byte, error) {
 }
 
 // CreateContextForLogging is to get the context with all the parameters those needed for log
-func CreateContextForLogging(ctx context.Context, transactionId string, threadName string, actionID string, actionName string, podName string) context.Context {
+func CreateContextForLogging(ctx context.Context, transactionID string, threadName string, actionID string, actionName string, podName string) context.Context {
 	// Add Action ID and Action Name in logs
-	ctx = context.WithValue(ctx, actionid, actionID)
-	ctx = context.WithValue(ctx, actionname, actionName)
+	ctx = context.WithValue(ctx, ctxValue(actionid), ctxValue(actionID))
+	ctx = context.WithValue(ctx, ctxValue(actionname), ctxValue(actionName))
 
 	// Add values in context (TransactionID, ThreadName, ThreadID)
-	ctx = context.WithValue(ctx, transactionid, transactionId)
-	ctx = context.WithValue(ctx, threadname, threadName)
-	ctx = context.WithValue(ctx, threadid, defaultThreadId)
-	ctx = context.WithValue(ctx, processname, podName)
+	ctx = context.WithValue(ctx, ctxValue(transactionid), ctxValue(transactionID))
+	ctx = context.WithValue(ctx, ctxValue(threadname), ctxValue(threadName))
+	ctx = context.WithValue(ctx, ctxValue(threadid), ctxValue(defaultThreadID))
+	ctx = context.WithValue(ctx, ctxValue(processname), ctxValue(podName))
 
 	return ctx
 }

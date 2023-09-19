@@ -37,6 +37,7 @@ import (
 	l "github.com/ODIM-Project/BMCOperator/logs"
 )
 
+// RevertPollingDetails reverts the changes on bmc
 func (r PollingReconciler) RevertPollingDetails(ctx context.Context, restClient restclient.RestClientInterface, mapOfSystems map[string]bool) {
 	mapOfBmcObj := make(map[string]bool)
 	isMarkedDeleted := make(map[string]bool)
@@ -103,10 +104,10 @@ func (r PollingReconciler) RevertPollingDetails(ctx context.Context, restClient 
 }
 
 // RevertResourceRemoved is called when event resource removed is arrived
-func (r *PollingReconciler) RevertResourceRemoved(ctx context.Context, systemUrl string) {
+func (r *PollingReconciler) RevertResourceRemoved(ctx context.Context, systemURL string) {
 	isMarkedDeleted := make(map[string]bool)
 	// get all bmc object
-	systemID := path.Base(systemUrl)
+	systemID := path.Base(systemURL)
 	r.bmcObject = r.commonRec.GetBmcObject(ctx, constants.StatusBmcSystemID, systemID, r.namespace)
 	// if bmcOjbects are not present then skip
 	if r.bmcObject != nil {
@@ -146,10 +147,10 @@ func (r *PollingReconciler) RevertResourceRemoved(ctx context.Context, systemUrl
 }
 
 // RevertResourceAdded is called when event resource removed is arrived
-func (r *PollingReconciler) RevertResourceAdded(ctx context.Context, systemUrl string) {
+func (r *PollingReconciler) RevertResourceAdded(ctx context.Context, systemURL string) {
 
-	aggregationURL := strings.Replace(systemUrl, "/Systems/", "/AggregationService/AggregationSources/", 1)
-	systemID := path.Base(systemUrl)
+	aggregationURL := strings.Replace(systemURL, "/Systems/", "/AggregationService/AggregationSources/", 1)
+	systemID := path.Base(systemURL)
 	var resp map[string]interface{}
 	// checking if the aggregation source has been completely added so that it does find the object on operator
 	for i := 0; i < 3; i++ {
