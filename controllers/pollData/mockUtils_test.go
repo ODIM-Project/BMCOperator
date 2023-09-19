@@ -189,7 +189,7 @@ func (m *MockCommonRec) GetVolumeObjectByVolumeID(ctx context.Context, volumeID,
 		volObj := &infraiov1.Volume{ObjectMeta: metav1.ObjectMeta{Name: "10.10.10.10.Volume6"},
 			Spec: infraiov1.VolumeSpec{
 				RAIDType: "RAID0",
-				Drives:   []int{6},
+				Drives:   []string{"6"},
 			}}
 		return volObj
 	}

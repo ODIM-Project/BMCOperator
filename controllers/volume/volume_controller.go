@@ -21,8 +21,6 @@ import (
 	"net/http"
 	"os"
 	"reflect"
-	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -223,19 +221,18 @@ func (vu *volumeUtils) UpdateVolumeStatusAndClearSpec(bmcObj *infraiov1.Bmc, dis
 		} else {
 			//getting all drives in the volume
 			var found = false
-			drives := []int{}
+			drives := []string{}
 			driveLinks := getEachVolResp["Links"].(map[string]interface{})["Drives"].([]interface{})
 			for _, dl := range driveLinks {
 				drive := dl.(map[string]interface{})["@odata.id"].(string)
-				driveID, err := strconv.Atoi(drive[len(drive)-1:])
+				driveURI := strings.Split(drive, "/")
+				driveID := driveURI[len(driveURI)-1]
 				if err != nil {
 					l.Log.Info("Could not convert drive id to Integer")
 				}
 				drives = append(drives, driveID)
 			}
-			sort.Ints(drives)
-			sort.Ints(vu.volObj.Spec.Drives)
-			if getEachVolResp["Name"].(string) == dispName && getEachVolResp["RAIDType"] == vu.volObj.Spec.RAIDType && reflect.DeepEqual(drives, vu.volObj.Spec.Drives) {
+			if getEachVolResp["RAIDType"] == vu.volObj.Spec.RAIDType && utils.CompareArray(drives, vu.volObj.Spec.Drives) {
 				vu.volObj.ObjectMeta.Annotations["odata.id"] = getEachVolResp["@odata.id"].(string)
 				err = vu.commonRec.GetCommonReconcilerClient().Update(vu.ctx, vu.volObj)
 				if err != nil {
@@ -247,7 +244,7 @@ func (vu *volumeUtils) UpdateVolumeStatusAndClearSpec(bmcObj *infraiov1.Bmc, dis
 					durableName = id.(map[string]interface{})["DurableName"].(string)
 					durableNameFormat = id.(map[string]interface{})["DurableNameFormat"].(string)
 				}
-				vu.commonRec.UpdateVolumeStatus(vu.ctx, vu.volObj, getEachVolResp["Id"].(string), dispName, fmt.Sprintf("%f", getEachVolResp["CapacityBytes"].(float64)), durableName, durableNameFormat)
+				vu.commonRec.UpdateVolumeStatus(vu.ctx, vu.volObj, getEachVolResp["Id"].(string), getEachVolResp["Name"].(string), fmt.Sprintf("%f", getEachVolResp["CapacityBytes"].(float64)), durableName, durableNameFormat)
 				vu.volObj.Spec = infraiov1.VolumeSpec{}
 				err := vu.commonRec.GetCommonReconcilerClient().Update(vu.ctx, vu.volObj)
 				if err != nil {
@@ -274,17 +271,17 @@ func (vu *volumeUtils) GetVolumeRequestPayload(systemID, dispName string) []byte
 	if vu.volObj.Spec.RAIDType == "" && vu.volObj.Spec.Drives == nil && vu.volObj.Spec.StorageControllerID == "" {
 		for _, driveId := range vu.volObj.Status.Drives {
 			// TODO : check if the drive is present and then proceed
-			driveDet := map[string]string{"@odata.id": fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Drives/%s", systemID, vu.volObj.Status.StorageControllerID, strconv.Itoa(driveId))}
+			driveDet := map[string]string{"@odata.id": fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Drives/%s", systemID, vu.volObj.Status.StorageControllerID, driveId)}
 			linkBody.Drives = append(linkBody.Drives, driveDet)
 		}
 		reqBody = requestPayload{RAIDType: vu.volObj.Status.RAIDType, Links: linkBody, DisplayName: dispName, ApplyTime: constants.ApplyTime}
 	} else { // when volume is created via operator directly, it will pass through this case
 		for _, driveId := range vu.volObj.Spec.Drives {
 			// TODO : check if the drive is present and then proceed
-			driveDet := map[string]string{"@odata.id": fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Drives/%s", systemID, vu.volObj.Spec.StorageControllerID, strconv.Itoa(driveId))}
+			driveDet := map[string]string{"@odata.id": fmt.Sprintf("/redfish/v1/Systems/%s/Storage/%s/Drives/%s", systemID, vu.volObj.Spec.StorageControllerID, driveId)}
 			linkBody.Drives = append(linkBody.Drives, driveDet)
 		}
-		reqBody = requestPayload{RAIDType: vu.volObj.Spec.RAIDType, Links: linkBody, DisplayName: dispName, ApplyTime: constants.ApplyTime}
+		reqBody = requestPayload{RAIDType: vu.volObj.Spec.RAIDType, Links: linkBody, DisplayName: dispName}
 	}
 	marshalBody, err := json.Marshal(reqBody)
 	if err != nil {

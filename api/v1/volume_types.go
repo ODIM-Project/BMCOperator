@@ -24,9 +24,9 @@ import (
 // VolumeSpec defines the desired state of Volume
 // +kubebuilder:validation:XPreserveUnknownFields
 type VolumeSpec struct {
-	StorageControllerID string `json:"storageControllerID,omitempty"`
-	RAIDType            string `json:"RAIDType,omitempty"`
-	Drives              []int  `json:"drives,omitempty"`
+	StorageControllerID string   `json:"storageControllerID,omitempty"`
+	RAIDType            string   `json:"RAIDType,omitempty"`
+	Drives              []string `json:"drives,omitempty"`
 }
 
 type Identifier struct {
@@ -41,7 +41,7 @@ type VolumeStatus struct {
 	VolumeName          string     `json:"volumeName"`
 	RAIDType            string     `json:"RAIDType"`
 	StorageControllerID string     `json:"storageControllerID"`
-	Drives              []int      `json:"drives"`
+	Drives              []string   `json:"drives"`
 	CapacityBytes       string     `json:"capacityBytes"`
 	Identifiers         Identifier `json:"Identifiers"`
 }
