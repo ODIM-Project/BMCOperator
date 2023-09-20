@@ -96,7 +96,7 @@ func (r PollingReconciler) RevertPollingDetails(ctx context.Context, restClient 
 		}
 		if !mapOfBmcObj[key] && !isMarkedDeleted[key] && !mapOfBmcObj[constants.SystemURI] {
 			aggregationURL := strings.Replace(key, "/Systems/", "/AggregationService/AggregationSources/", 1)
-			r.commonUtil.BmcDeleteOperation(ctx, aggregationURL, restClient, r.bmcObject.ObjectMeta.Name)
+			r.commonUtil.BmcDeleteOperation(ctx, aggregationURL, r.bmcObject.ObjectMeta.Name)
 		}
 		delete(mapOfBmcObj, constants.SystemURI)
 	}
@@ -155,6 +155,7 @@ func (r *PollingReconciler) RevertResourceAdded(ctx context.Context, systemUrl s
 	for i := 0; i < 3; i++ {
 		var statusCode int
 		resp, statusCode, _ = r.pollRestClient.Get(aggregationURL, "Checking BMC addition")
+		l.LogWithFields(r.ctx).Debugf("Response from GET on %s:%v", aggregationURL, resp)
 		if statusCode == http.StatusOK {
 			break
 		}
@@ -173,7 +174,7 @@ func (r *PollingReconciler) RevertResourceAdded(ctx context.Context, systemUrl s
 	if r.bmcObject == nil {
 		l.LogWithFields(ctx).Debugf("bmc object with systemID %s could not be found hence proceeding to delete", systemID)
 
-		r.commonUtil.BmcDeleteOperation(ctx, aggregationURL, r.pollRestClient, systemID)
+		r.commonUtil.BmcDeleteOperation(ctx, aggregationURL, systemID)
 	}
 }
 
@@ -191,7 +192,7 @@ func (r PollingReconciler) bmcAdditionOperation(ctx context.Context, restClient 
 			return false, ""
 		}
 
-		ok, taskResp := common.GetCommonUtils(restClient).BmcAddition(ctx, r.bmcObject, body, restClient)
+		ok, taskResp := common.GetCommonUtils(restClient).BmcAddition(ctx, r.bmcObject, body)
 		if ok && taskResp["Name"].(string) == "Aggregation Source" {
 			if task, ok := taskResp["Id"]; ok {
 				return true, task.(string)

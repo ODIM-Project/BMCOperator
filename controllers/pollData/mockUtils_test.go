@@ -16,12 +16,11 @@ package controllers
 
 import (
 	"context"
-	// "fmt"
+	"crypto/rsa"
 	"net/http"
 
 	infraiov1 "github.com/ODIM-Project/BMCOperator/api/v1"
 	v1 "github.com/ODIM-Project/BMCOperator/api/v1"
-	restclient "github.com/ODIM-Project/BMCOperator/controllers/restclient"
 	utils "github.com/ODIM-Project/BMCOperator/controllers/utils"
 	volume "github.com/ODIM-Project/BMCOperator/controllers/volume"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -40,6 +39,7 @@ type MockCommonRec struct {
 type mockRestClient struct{ url string }
 
 type mockCommonUtil struct{}
+type mockBmcUtil struct{}
 
 type mockVolumeUtil struct{}
 
@@ -190,6 +190,11 @@ func (m *MockCommonRec) GetVolumeObjectByVolumeID(ctx context.Context, volumeID,
 			Spec: infraiov1.VolumeSpec{
 				RAIDType: "RAID0",
 				Drives:   []int{6},
+			},
+			Status: infraiov1.VolumeStatus{
+				VolumeName: "Volume6",
+				RAIDType:   "RAID0",
+				Drives:     []int{6},
 			}}
 		return volObj
 	}
@@ -431,10 +436,10 @@ func (m mockCommonUtil) GetBmcSystemDetails(context.Context, *infraiov1.Bmc) map
 func (m mockCommonUtil) MoniteringTaskmon(headerInfo http.Header, ctx context.Context, operation, resourceName string) (bool, map[string]interface{}) {
 	return true, nil
 }
-func (m mockCommonUtil) BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body []byte, restClient restclient.RestClientInterface) (bool, map[string]interface{}) {
+func (m mockCommonUtil) BmcAddition(ctx context.Context, bmcObject *v1.Bmc, body []byte) (bool, map[string]interface{}) {
 	return false, nil
 }
-func (m mockCommonUtil) BmcDeleteOperation(ctx context.Context, aggregationURL string, restClient restclient.RestClientInterface, resource string) bool {
+func (m mockCommonUtil) BmcDeleteOperation(ctx context.Context, aggregationURL string, resource string) bool {
 	return false
 }
 
@@ -454,3 +459,45 @@ func (m mockVolumeUtil) DeleteVolume(bmcObj *infraiov1.Bmc) bool {
 	return true
 }
 func (m mockVolumeUtil) UpdateVolumeObject(volObj *infraiov1.Volume) {}
+
+///------------------------MOCK BMC UTILS------------------------------------
+
+func (m *mockBmcUtil) AddBmc(body []byte, namespaceName types.NamespacedName, sysID string) bool {
+	return true
+}
+func (m mockBmcUtil) PrepareAddBmcPayload(connectionMeth string) ([]byte, error) {
+	return nil, nil
+}
+func (m mockBmcUtil) UpdateBmcLabels() {}
+func (m mockBmcUtil) UpdateDriveDetails() map[string]infraiov1.ArrayControllers {
+	return nil
+}
+func (m mockBmcUtil) GetManagerDetails() map[string]interface{} {
+	return nil
+}
+func (m mockBmcUtil) UnregisterBmc() bool {
+	return true
+}
+func (m mockBmcUtil) LoggingBmcDeletionActivity(isDeleted error, objectName string) {}
+func (m mockBmcUtil) RemoveBmcFinalizerAndDeleteDependencies()                      {}
+func (m mockBmcUtil) GetAllowableResetValues() []string {
+	return nil
+}
+func (m mockBmcUtil) ValidateResetData(powerState string, allowableValues []string) bool {
+	return true
+}
+func (m mockBmcUtil) ResetSystem(isBiosUpdation bool, updateBmcDependents bool) bool {
+	return true
+}
+func (m mockBmcUtil) UpdateOdimWithNewPassword() (bool, error) {
+	return true, nil
+}
+func (m mockBmcUtil) UpdateBmcWithNewPassword() (bool, error) {
+	return true, nil
+}
+func (m mockBmcUtil) EncryptPassword(publicKey *rsa.PublicKey) {}
+func (m mockBmcUtil) GetConnectionMethod(odimObj *infraiov1.Odim) string {
+	return ""
+}
+func (m mockBmcUtil) UpdateBmcObject(bmcObj *infraiov1.Bmc) {}
+func (m mockBmcUtil) DeleteBMCObject()                      {}

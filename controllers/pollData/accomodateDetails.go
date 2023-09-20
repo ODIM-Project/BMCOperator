@@ -40,6 +40,7 @@ import (
 // AccommodatePollingDetails will get bmc details and update information accordingly
 func (r PollingReconciler) AccommodatePollingDetails(ctx context.Context, restClient restclient.RestClientInterface, mapOfBmc map[string]common.BmcState) {
 	for urlpath, bmcState := range mapOfBmc {
+		l.LogWithFields(r.ctx).Debugf("Accommodating for %s bmc", urlpath)
 		r.AccommodateBMCInfo(ctx, restClient, urlpath, bmcState)
 	}
 }
@@ -54,6 +55,7 @@ func (r PollingReconciler) AccommodateBMCInfo(ctx context.Context, restClient re
 
 	if bmcState.IsAdded || bmcState.IsDeleted {
 		r.bmcObject = r.commonRec.GetBmcObject(ctx, constants.StatusBmcSystemID, systemID, r.namespace)
+		l.LogWithFields(r.ctx).Debug("bmc object:", r.bmcObject)
 		if r.bmcObject != nil {
 			if r.checkIfSystemIsUndergoingReset() {
 				return
@@ -89,6 +91,7 @@ func (r PollingReconciler) AccommodateBMCInfo(ctx context.Context, restClient re
 	if !bmcState.IsObjCreated && !objCreated && r.bmcObject == nil && bmcState.IsAdded && !bmcState.IsDeleted {
 		l.LogWithFields(ctx).Info("Creating Bmc object")
 		res, _, err := restClient.Get(aggregationURL, "Getting response on Aggregation Sources")
+		l.LogWithFields(r.ctx).Debugf("Response from GET on %s:%v", aggregationURL, res)
 		if err != nil {
 			l.LogWithFields(ctx).Errorf("Failed to get Aggregation Sources details")
 			return
@@ -97,8 +100,8 @@ func (r PollingReconciler) AccommodateBMCInfo(ctx context.Context, restClient re
 			links := res["Links"].(map[string]interface{})
 			connMethodOdata := links["ConnectionMethod"].(map[string]interface{})
 			connMethodID := connMethodOdata["@odata.id"].(string)
-
 			connecRes, _, err := restClient.Get(connMethodID, "Getting response on Connection Method")
+			l.LogWithFields(r.ctx).Debugf("Response from GET on %s:%v", connMethodID, connecRes)
 			if err != nil {
 				l.LogWithFields(ctx).Errorf("Failed to get Connection Method details")
 				return
@@ -114,6 +117,7 @@ func (r PollingReconciler) AccommodateBMCInfo(ctx context.Context, restClient re
 			}
 		}
 	}
+	l.LogWithFields(r.ctx).Debug("MapOfBmc in Accommodate:", common.MapOfBmc)
 }
 
 // createBmcObject used for creating unstructured bmc object
