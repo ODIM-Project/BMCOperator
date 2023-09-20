@@ -18,13 +18,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"reflect"
-	"sort"
-	"strconv"
 	"strings"
 
 	infraiov1 "github.com/ODIM-Project/BMCOperator/api/v1"
 	common "github.com/ODIM-Project/BMCOperator/controllers/common"
+	utils "github.com/ODIM-Project/BMCOperator/controllers/utils"
 	volume "github.com/ODIM-Project/BMCOperator/controllers/volume"
 	l "github.com/ODIM-Project/BMCOperator/logs"
 	"k8s.io/apimachinery/pkg/types"
@@ -235,7 +233,7 @@ func (pr PollingReconciler) getVolumeDetailsAndCreateVolumeObject(bmc *infraiov1
 		newVolume.ObjectMeta.Annotations = map[string]string{}
 		newVolume.ObjectMeta.Annotations["odata.id"] = volumeURL
 		controllerutil.AddFinalizer(&newVolume, volume.VolFinalizer)
-		var drives = []int{}
+		var drives = []string{}
 		var identifier infraiov1.Identifier
 		l.LogWithFields(pr.ctx).Info(fmt.Sprintf("Creating volume object %s...", newVolume.ObjectMeta.Name))
 		err = pr.Client.Create(pr.ctx, &newVolume)
@@ -248,10 +246,8 @@ func (pr PollingReconciler) getVolumeDetailsAndCreateVolumeObject(bmc *infraiov1
 		driveLinks := newVolumeDetails["Links"].(map[string]interface{})["Drives"].([]interface{})
 		for _, dl := range driveLinks {
 			drive := dl.(map[string]interface{})["@odata.id"].(string)
-			driveID, err := strconv.Atoi(drive[len(drive)-1:])
-			if err != nil {
-				l.Log.Info("Could not convert drive id to Integer")
-			}
+			driveURI := strings.Split(drive, "/")
+			driveID := driveURI[len(driveURI)-1]
 			drives = append(drives, driveID)
 		}
 		newVolume.Status.Drives = drives
@@ -355,19 +351,15 @@ func (pr PollingReconciler) getNewVolumeIDForObject(bmcObj *infraiov1.Bmc, stora
 			return "", nil
 		} else {
 			//getting all drives in the volume
-			drives := []int{}
+			drives := []string{}
 			driveLinks := getEachVolResp["Links"].(map[string]interface{})["Drives"].([]interface{})
 			for _, dl := range driveLinks {
 				drive := dl.(map[string]interface{})["@odata.id"].(string)
-				driveID, err := strconv.Atoi(drive[len(drive)-1:])
-				if err != nil {
-					l.Log.Info("Could not convert drive id to Integer")
-				}
+				driveURI := strings.Split(drive, "/")
+				driveID := driveURI[len(driveURI)-1]
 				drives = append(drives, driveID)
 			}
-			sort.Ints(drives)
-			sort.Ints(volObj.Status.Drives)
-			if getEachVolResp["Name"].(string) == volObj.Status.VolumeName && getEachVolResp["RAIDType"] == volObj.Status.RAIDType && reflect.DeepEqual(drives, volObj.Status.Drives) {
+			if getEachVolResp["RAIDType"] == volObj.Status.RAIDType && utils.CompareArray(drives, volObj.Status.Drives) {
 				return getEachVolResp["Id"].(string), nil
 			}
 		}

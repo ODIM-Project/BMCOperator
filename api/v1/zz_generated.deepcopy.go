@@ -1138,7 +1138,7 @@ func (in *VolumeSpec) DeepCopyInto(out *VolumeSpec) {
 	*out = *in
 	if in.Drives != nil {
 		in, out := &in.Drives, &out.Drives
-		*out = make([]int, len(*in))
+		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
 }
@@ -1158,7 +1158,7 @@ func (in *VolumeStatus) DeepCopyInto(out *VolumeStatus) {
 	*out = *in
 	if in.Drives != nil {
 		in, out := &in.Drives, &out.Drives
-		*out = make([]int, len(*in))
+		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
 	out.Identifiers = in.Identifiers
